@@ -71,7 +71,7 @@ app.get("/insert", (req, res) => {
         DEPT
     ]);
 
-    urls = "http://192.168.1.76:3000/select/"
+    urls = "http://192.168.1.76:8000/select/"
     request(urls, { json: true }, (err, result, body) => {
         if (err) { return console.log(err) }
         res.send(CircularJSON.stringify(body))
@@ -87,7 +87,7 @@ app.get("/update", (req, res) => {
         ST_ID
     ]);
 
-    urls = "http://192.168.1.76:3000/select/"
+    urls = "http://192.168.1.76:8000/select/"
     request(urls, { json: true }, (err, result, body) => {
         if (err) { return console.log(err) }
         res.send(CircularJSON.stringify(body))
@@ -101,7 +101,7 @@ app.get("/delete", (req, res) => {
         ST_ID
     ]);
 
-    urls = "http://192.168.1.76:3000/select/"
+    urls = "http://192.168.1.76:8000/select/"
     request(urls, { json: true }, (err, result, body) => {
         if (err) { return console.log(err) }
         res.send(CircularJSON.stringify(body))
