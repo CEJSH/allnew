@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<style>
+    p {
+        color: #869CEB;
+        padding: 20px;
+        font-weight : bold;
+        font-size : 18px;
+        text-align:center;
+    }
+    h1 {
+        padding: 20px;
+        text-align:center;
+    }
+    input {
+        color :#50C878;
+        font-weight : bold;
+        text-align:center;
+    }
+    button {
+        color :#50C878;
+        font-weight : bold;
+        text-align:center;
+    }
+    iframe {
+        text-align:center;
+    }
+</style>
+
+<head>
+    <meta charset="utf-8">
+    <title>
+        Customer Register
+    </title>
+</head>
+<body>
+    <h1>Register Page</h1>
+    <hr>
+    <form action="/insert" target ="targetURL" name="userForm" method="post">
+
+        <p>    id        : <input type="text" size="15" name="id" /></p>
+        <p>   성명      : <input type="text" size="15" name="name" /></p>
+        <p>   생일      : <input type="date" size="15" name="birthday" /></p>
+        <p>   전화번호  : <input type="text" size="15" name="phone" /></p>
+        <p>   주소      : <input type="text" size="15" name="address" /></p>
+        <p>   여권번호  : <input type="text" size="15" name="pnum" /></p>
+
+    <p><input type="button" value="전체 회원 조회"
+        onclick='document.targetURL.location.href="/select"'/>  <input type="button" 
+        value="ID로 회원 검색하기" onclick='document.targetURL.location.href=
+        "/selectQuery?customerId="+document.userForm.id.value'/>  <input type="submit" value="회원 등록"/>  <button type="submit" 
+        formaction="/update">회원 정보 수정</button>  <button type="submit" formaction="/delete">회원 삭제</button>
+</p>
+    </form>
+    <hr>
+<p align = "middle">
+    <iframe name="targetURL"
+        width="75%" 
+        height="500" 
+        style="border:none;"
+        src ="/greeting"></iframe></p>
+
+</body>
+
+</html>
