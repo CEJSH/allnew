@@ -62,7 +62,7 @@ app.post('/insert', (req, res) => {
 
 app.post('/update', (req, res) => {
     const { id, name, birthday, phone, address, pnum } = req.body;
-    const result = connection.query("update customer set customerName=?,birthDate=?, phoneNumber=?, addr=?, pnum=? where customerId=?", [name, birthday, phone, address, pnum, id] );
+    const result = connection.query("update customer set customerName=?, phoneNumber=?, addr=?, pnum=? where customerId=?", [name, phone, address, pnum, id] );
     console.log(result);
     res.send(req.body.name + "님의 정보가 성공적으로 업데이트 되었습니다~!");
     //res.redirect('/selectQuery?userid=' + req.body.id);
