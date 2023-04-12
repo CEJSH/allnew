@@ -46,6 +46,7 @@ app.get('/selectQuery', (req, res) => {
 // request 1, query 1
 app.post('/selectQuery', (req, res) => {
     const id = req.body.id;
+    //console.log(req.body) 해보는 거 중요
     const result = connection.query("select * from customer where customerId=?", [id] );
     console.log(result);
     res.send(result);

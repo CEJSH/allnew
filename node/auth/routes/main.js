@@ -56,22 +56,49 @@ app.post('/insert', (req, res) => {
     const { id, pw } = req.body;
     const result = connection.query("insert into user values (?,?)", [id, pw] );
     console.log(result);
-    res.redirect('/selectQuery?userid=' + req.body.id);
+    res.redirect('/');
+
+})
+
+app.post('/login',(req,res) => {
+    const{id,pw} = req.body;
+    const result = connection.query("select * from user where userid=? and passwd=?", [id, pw]);
+    if (result.length == 0) {
+        res.redirect('error.html')
+    }
+        if (id == 'admin' || id == 'root'){
+            console.log(id + "=> Administrator Logined")
+            res.redirect('member.html')
+        } else {
+            console.log(id + " => User Logined")
+            res.redirect('main.html')
+        }
+
+})
+
+app.post('/insert2', (req, res) => {
+    const { id, name, birthday, phone, address, pnum } = req.body;
+    const result = connection.query("insert into customer values (?,?,?,?,?,?)", [id, name, birthday, phone, address, pnum] );
+    console.log(req.body.name + "님의 정보를 성공적으로 등록하였습니다~!");
+    res.send(req.body.name + "님의 정보를 성공적으로 등록하였습니다~!");
+    //res.redirect('/selectQuery?userid=' + req.body.id);
 })
 
 app.post('/update', (req, res) => {
-    const { id, pw } = req.body;
-    const result = connection.query("update user set passwd=? where userid=?", [pw, id] );
+    const { id, name, birthday, phone, address, pnum } = req.body;
+    const result = connection.query("update customer set customerName=?, phoneNumber=?, addr=?, pnum=? where customerId=?", [name, phone, address, pnum, id] );
     console.log(result);
-    res.redirect('/selectQuery?userid=' + req.body.id);
+    res.send(req.body.name + "님의 정보가 성공적으로 업데이트 되었습니다~!");
+    //res.redirect('/selectQuery?userid=' + req.body.id);
 })
 
 app.post('/delete',(req , res)=> {
     const id =req.body.id;
-    const result = connection.query("delete from user where userid=?", [id]);
+    const result = connection.query("delete from customer where customerId=?", [id]);
     console.log(result);
-    res.redirect('/select');
-}
-)
+    res.send(req.body.name + "님의 정보를 성공적으로 삭제하였습니다~!");
+   //res.redirect('/select');
+})
+
 
 module.exports = app;
