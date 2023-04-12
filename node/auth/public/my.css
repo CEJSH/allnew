@@ -1,0 +1,44 @@
+body {
+    background-color: rgb(16, 199, 122);
+}
+
+p {
+    color: green;
+    font-weight: 1000;
+}
+
+hr {
+    background-color: darkgreen;
+    height: 5px;
+    border: solid darkgreen;
+}
+
+form {
+    border: solid green;
+    border-radius: 15px;
+    width: 35%;
+    text-align: center;
+}
+
+button,
+input {
+    border-radius: 5px;
+    border: solid green;
+    background-color: rgb(226, 247, 196);
+    font-weight: 1000;
+    color: green;
+}
+
+button,
+input:hover {
+    background-color: yellowgreen;
+}
+
+h2 {
+    text-align: center;
+    color: green;
+}
+
+form {
+    margin: auto;
+}
