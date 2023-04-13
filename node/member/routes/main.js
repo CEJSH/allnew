@@ -29,11 +29,11 @@ app.get('/select', (req, res) => {
 })
 
 // request 1, query 0
-app.post('/select', (req, res) => {
-    const result = connection.query('select * from user');
-    console.log(result);
-    res.send(result);
-})
+// app.post('/select', (req, res) => {
+//     const result = connection.query('select * from user');
+//     console.log(result);
+//     res.send(result);
+// })
 
 // request 1, query 1
 app.get('/selectQuery', (req, res) => {
