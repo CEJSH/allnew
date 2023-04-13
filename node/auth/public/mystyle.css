@@ -34,9 +34,20 @@ body.index {
     background-color: rgb(241, 206, 234);
     font-family: 나눔고딕;
     font-weight: 1000;
-    background-image: url("baby3.gif");
+    background-image: url("baby.gif");
     background-size: 1000px 800px;
     background-position: left center;
+}
+
+body.index2 {
+
+    background-color: rgb(241, 206, 234);
+    font-family: 나눔고딕;
+    font-weight: 1000;
+    background-image: url("3.jpg");
+    background-size: 600px 700px;
+    background-position: left center;
+    
 }
 
 h2 {
@@ -48,6 +59,7 @@ h2 {
 
 hr {
     border: 5px solid rgb(245, 244, 178);
+
 }
 
 input {
@@ -87,8 +99,50 @@ a {
 
 form {
     text-align: center;
-
     border-radius: 15px;
     border: 15px sold white;
 
+}
+
+#menubar {
+    background: rgb(245, 244, 178);
+}
+
+#menubar ul {
+    /* 여백과 패딩 모두 0 */
+    margin: 0;
+    padding: 0;
+    width: 567px;
+    /* 모든 아이템(<li>)을 한 줄에 품을 수 있는 폭 */
+}
+
+#menubar ul li {
+    display: inline-block;
+    /* 새 줄로 넘어가지 않게 */
+    list-style-type: none;
+    /* 마커 삭제 */
+    padding: 0px 15px;
+    /* top=bottom=0, left=right=15px */
+}
+
+#menubar ul li a {
+    color: rgba(159, 3, 146, 0.63);
+    text-decoration: none;
+    /* 링크 보이지 않게 */
+}
+
+#menubar ul li a:hover {
+    color: violet;
+    /* 마우스 올라 갈 때 색 */
+}
+
+#wrap > div {
+    display: inline-block;
+}
+div .box1 {
+    margin-left : 10px;
+}
+div .box3{
+    margin-right : 10px;
+    float : right;
 }
