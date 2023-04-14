@@ -103,7 +103,8 @@ app.post('/select', (req, res) => {
 app.get('/selectQuery', (req, res) => {
     const id = req.query.id;
     if (id == "") {
-        res.send('User-id를 입력하세요.')
+        //res.send('User-id를 입력하세요.')
+        res.write("<script>alert('User-id를 입력하세요')</script>");
     } else {
         const result = connection.query("select * from user where userid=?", [id]);
         console.log(result);
@@ -121,7 +122,8 @@ app.get('/selectQuery', (req, res) => {
 app.post('/selectQuery', (req, res) => {
    const id = req.body.id;
     if (id == "") {
-        res.send('User-id를 입력하세요.')
+        //res.send('User-id를 입력하세요.')
+        res.write("<script>alert('User-id를 입력하세요')</script>");
     } else {
         const result = connection.query("select * from user where userid=?", [id]);
         console.log(result);
@@ -221,8 +223,10 @@ app.post('/update', (req, res) => {
 app.post('/delete',(req , res)=> {
      const id = req.body.id;
     if (id == "") {
-        res.send('User-id를 입력하세요.')
+        //res.send('User-id를 입력하세요.')
+        res.write("<script>alert('User-id를 입력하세요')</script>");
     } else {
+
         const result = connection.query("select * from user where userid=?", [id]);
         console.log(result);
         // res.send(result);
