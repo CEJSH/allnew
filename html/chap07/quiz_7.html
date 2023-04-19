@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>리터럴 표기법으로 사용자 객체 만들기</title>
+    <script>
+        //사용자 객체 만들기
+        let book={
+            // 프로퍼티 생성 및 초기화
+            title:'물고기는 존재하지 않는다',
+            author :'룰루 밀러',
+            owner: "최은재", // 책 주인
+            code: "777", // 책 코드
+            category:"non fiction",
+            page:300,
+            price: 20000, // 잔액 프로퍼티
+            // 메소드 작성
+            inquiry: function () { return this.page; }, // 현재페이지
+            reading: function (amount) {
+             this.page -= amount;
+            return this.page }, 
+            fridaydiscount: function () { // 예금 인출, money는 인출하고자 하는 액수
+                // money가 balance보다 작다고 가정
+                discountprice = this.price*0.8 ;
+                return discountprice;
+            },
+            rent : function(who, day) { 
+                this.who = who;
+                this.day = day;
+                this.resntalState = 0;
+                
+                document.write(`현재 ${book.title}는 ${this.who}님에게 ${this.day}동안 대여중입니다.`);
+            }
+        };
+        let state = {0:"대여중", 1:"대여가능"};
+    
+        
+    </script>
+</head>
+
+<body>
+    <h3>리터럴 표기법으로 사용자 객체 만들기</h3>
+    <hr>
+    <script>
+    document.write(`Book : ${book.title}, ${book.author}, ${book.price}원 입니다.` );
+    document.write("<hr/>");
+    document.write(`현재 전체 페이지 ${book.page}중 잔여페이지가 ${book.reading(10)}페이지 남으셨습니다.`);
+    document.write("<hr/>");
+    document.write("금요일 할인을 받으시면 할인 가격은" + book.fridaydiscount() +"원 입니다."); 
+    document.write("<hr />");
+    book.rent("최연준", 20)
+            
+    </script>
+    <hr>
+        
+</body>
+
+</html>
