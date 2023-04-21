@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Prime Number</title>
+</head>
+
+<body>
+    <h1>Prime Number</h1>
+    <hr><input id="num" type="text"  style="width:300px;height:100%;font-size:60px;">
+    <input id="response" type="text" style="width:600px;height:100%;font-size:60px;">
+    <button type="button" id="prime" font-size="60px" style="width:70px;height:70px;" onclick="send()" >check</button>
+    <hr>
+    <div id="result"></div>
+    <script>
+        let addWorker = new Worker("prime.js"); // 워커 태스크 생성
+        function send() { // 워크 태스크에 시작 숫자와 끝 숫자 전송
+            let parameters = { // 시작 숫자와 끝 숫자로 구성된 객체
+                num: document.getElementById("num").value
+            };
+            // 시작 숫자와 끝 숫자를 담은 객체를 워커 태스크로 전송
+            addWorker.postMessage(parameters);
+        }
+        // 워커 태스크로부터 결과를 기다리는 리스너 등록
+        addWorker.onmessage = function (e) {
+            // 워커 태스크로부터 전달받은 합 출력
+            if (e.data==""){
+                alert("값을 입력하세요~")
+            }else {
+                document.getElementById("response").value = e.data;
+                document.getElementById("result").innerHTML = e.data;}
+        }
+    </script>
+</body>
+</html>
