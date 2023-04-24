@@ -29,34 +29,34 @@ app.get("/select", (req, res) => {
     console.log(result);
     res.writeHead(200);
     var template = `
-  <!doctype html>
-  <html>
-  <head>
-    <title>Result</title>
-    <meta charset="utf-8">
-  </head>
-  <body>
-   <table border="1" margin:auto; text-align:center;>
-     <tr>
-       <th>ST_ID</th>
-       <th>NAME</th>
-       <th>DEPT</th>
-     </tr>
-   `;
-    for (var i = 0; i < result.length; i++) {
-        template += `
-     <tr>
-       <th>${result[i]['ST_ID']}</th>
-       <th>${result[i]['NAME']}</th>
-       <th>${result[i]['DEPT']}</th>
-     </tr>
-    `
-    }
+<!doctype html>
+<html>
+<head>
+<title>Result</title>
+<meta charset="utf-8">
+</head>
+<body>
+<table border="1" margin:auto; text-align:center;>
+    <tr>
+    <th>ST_ID</th>
+    <th>NAME</th>
+    <th>DEPT</th>
+    </tr>
+`;
+for (var i = 0; i < result.length; i++) {
     template += `
-     </table>
-  </body>
-  </html>
- `;
+    <tr>
+    <th>${result[i]['ST_ID']}</th>
+    <th>${result[i]['NAME']}</th>
+    <th>${result[i]['DEPT']}</th>
+    </tr>
+`
+}
+template += `
+    </table>
+</body>
+</html>
+`;
     res.end(template);
 })
 
