@@ -15,6 +15,8 @@ var userSchema = mongoose.Schema ({
     
 })
 
+var mongoose = require('mongoose'); mongoose.connect("mongodb://localhost/ml",{ useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, }).then( () => { console.log("Database is Connected Successful"); }).catch(err => console.log(err)); var Article = require('./model/model'); Article.find({},(err,data) => { if(err){ console.log(err); }else{ console.log(data); } });
+
 var User = mongoose.model('users', userSchema);
 
 app.get('/Hello', function(req, res) {
