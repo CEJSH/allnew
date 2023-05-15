@@ -1,0 +1,28 @@
+<table id="calendar" border="3" align="center" width="400" height="300">
+    <thead>
+    <tr>
+        <th>Sun</th>>
+        <th>Mon</th>>
+        <th>Thu</th>>
+        <th>Wed</th>>
+        <th>Thr</th>>
+        <th>Fri</th>>
+        <th>Sat</th>>
+        
+    </tr>
+    </thead>
+    <script>
+        let i=1;
+        for (i =1;i <= endDay + startDay; i++){
+            if(i%7 ==1) document.write("<tr>");
+                if (i <= startDay) document.write("<td></td>");
+                if(i > startDay) {
+                    document.write("<td>");
+                    document.write(i - startDay);
+                    document.write("</td>");
+                }
+                if(i%7==0) document.write("</tr>");
+
+        }
+    </script>
+</table>

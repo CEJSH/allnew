@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+<h2>Palindrome</h2>
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function judge() {
+            let input = document.getElementById("iv");
+            let d = document.getElementById("window");
+            
+            if (input.value.length==3){                
+                if(input.value[0]==input.value[2]){
+                        d.innerHTML = input.value + "는 palindrome이 맞습니다."; // div 객체에 html 문자열 출력
+                } else {
+                        d.innerHTML = input.value +"는 palindrome이 아닙니다..";
+                }}
+                else {
+                    d.innerHTML = "3자리를 입력하세요.";
+                }
+
+                
+        }
+    </script>
+    <p><input type ="text" id = "iv"><button onclick="judge()">Check Palindrome</button></p>
+    <div id = "window">3자리 문자 또는 숫자를 입력하세요.</div>
+    <input type="radio" name="type" value="number"/>숫자
+    <input type="radio" name= "type" value="text"/>문자
+
+</body>
+</html>

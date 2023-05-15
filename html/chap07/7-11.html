@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>프로토타입으로 객체 만들기</title>
+    <script>
+        // 프로토타입 만들기 : 생성자 함수 작성
+        function Book(title, author, totalPage, category, price, leftover, rentalState, rentalUser, rentalDay) {
+          
+            this.title = title; // 계좌 주인 프로퍼티 만들기
+            this.author = author; // 계좌 코드 프로퍼티 만들기
+            this.totalPage = totalPage;
+            this.category = category; 
+            this.price = price; 
+            this.leftover = totalPage; 
+            this.rentalState = 1;  // 잔액 프로퍼티 만들기
+            this.rentalUser = ""; 
+            this.rentalDay = rentalDay; 
+            // 메소드 만들기
+            this.reading = function (page) {this.leftover -= page;
+                return this.leftover; }
+
+            this.rental = function (user, day) {
+                this.rentalUser = user;
+                this.rentalDay = day;
+                this.rentalState = 0;
+                return this.rentalState;
+            }
+            this.discount = function(rate){
+             
+                this.discounted = this.price - this.price*rate;
+                return this.discounted;
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h3>Book 프로토타입 만들기</h3>
+    <hr>
+    <script>
+        // new 연산자 이용하여 계좌 객체 생성
+        let bookfish = new Book("물고기는 존재하지 않는다", "룰루 밀러", 350, "non fiction", 18000, 330,1,"최은재" ,30,0.7);
+        // 객체 활용
+            document.write(`Book : ${bookfish.title}, ${bookfish.author}, ${bookfish.price}원 입니다.`);
+            document.write("<hr/>");
+            document.write(`현재 전체 페이지 ${bookfish.totalPage}중 잔여페이지가 ${bookfish.reading(50)}페이지 남으셨습니다.`);
+            document.write("<hr/>");
+            document.write(`금요일 할인을 받으시면 할인 가격은  ${bookfish.discount(0.1)} 원 입니다.`);
+            document.write("<hr />");
+            document.write(`${bookfish.rentalUser}님께서는 ${bookfish.rentalDay}일 동안 대여가능하십니다`)
+            </script>
+</body>
+
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <h2>리터럴 표기법으로 Human 객체 만들기</h2><hr>
+    <script>
+        function Human(height, weight, color, age) {
+            this.height = height;
+            this.weight = weight;
+            this.color = color;
+            this.dream = 0;
+            this.age = age;
+            this.stress=0;
+            this.sleep = function (time) {
+                document.write(`${time}시간동안 숙면을 취합니다.<br>`);
+            
+                if (time >= 8) {
+                    this.dream += 1;
+                    this.stress -=2;
+                } else {
+                    document.write(`이런.. 조금더 잠을 자도록 노력해보세요.<br>`);
+                    this.stress -=1;
+                }
+            }
+                this.eat = function (food) {
+                if (food == "달걀" || "야채") {
+                    document.write(`좋은생각이야! ${food}(을)를 먹을 생각을 하다니! <br>`);
+                    this.weight -= 0.5;
+                }
+            
+                else if (food=="과자") {
+                    document.write("운동하자!")
+                    this.weight += 0.7;
+                    this.stress +=2;
+
+                }
+                else {
+                    document.write("맛있게 먹어!")
+                    this.weight += 0.6
+                    this.stress += 1;
+                }}
+
+            this.workout = function (minutes) {
+                document.write(`화이팅!!! ${minutes}분동안 운동을 하다니!<br>`)
+                this.weight -= minutes*0.01;
+                document.write(`몸무게가 ${minutes*0.01}kg 줄었습니다. 이제 ${this.weight}kg가 되었어요!<br>`);
+                this.stress -= 3;
+            };
+
+            this.read = function (booktitle) {
+                document.write(` ${booktitle} ! 좋은 책이네요! `);
+                this.stress -= 1;
+            }
+
+            this.outside = function (time) {
+                document.write(`${time}시간이나 밖에있다니...고생이 많다<br>`);
+                this.stress += time*2
+            }
+
+
+
+            this.info = function () {
+                document.write(`<hr>
+            height : ${this.height}<br>
+            weight : ${this.weight}<br>
+            age : ${this.age}<br>
+            color : ${this.color}<br>
+            stress : ${this.stress} , 주의 : 스트레스 지수는 작을 수록 좋습니다 평균적으로 10지수를 유지해 주세요^_^`);
+            }
+        }
+    </script>
+</head>
+<body>
+    <script>
+    
+    let human = new Human (160,49,"ivory",25);
+  
+    human.eat("야채");
+    human.sleep(5);
+    human.outside(10)
+    human.workout(86);
+    human.info();
+
+
+    
+  </script>
+</body>
+</html>

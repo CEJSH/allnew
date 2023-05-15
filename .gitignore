@@ -1,6 +1,8 @@
 # .gitignore
-
 .ftpconfig
+
+# environment files
+.env
 
 ## c programing
 c/**/a.out
@@ -21,10 +23,14 @@ maven/target
 
 ## nodejs
 node/**/node_modules
+node/**package-lock.json
+node/config/pool.js
 
 ## python
 python/**/.venv
 python/**/__pycache__/
+python/**/.idea
+python/secret.json
 
 ## mongodb
 mongodb/*.json
@@ -36,3 +42,5 @@ mongodb/backup
 oracle/node/dbConfig.js
 oracle/node/node_modules
 oracle/node/package-lock.json
+
+## html

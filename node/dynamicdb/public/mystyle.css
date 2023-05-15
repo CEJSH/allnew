@@ -1,0 +1,36 @@
+table {
+border-style: none;
+}
+
+td,
+th {
+    /* 모든 셀에 적용 */
+    text-align: left;
+    padding: 5px;
+    height: 15px;
+    width: 100px;
+    border-color: aliceblue;
+    
+}
+
+thead,
+tfoot {
+    /* <thead>의 모든 셀에 적용 */
+    background: rgb(249, 200, 255);
+    color: yellow;
+    border-color: aliceblue;
+    
+}
+
+tbody tr:nth-child(even) {
+    /* 짝수 <tr>에 적용*/
+    background: aliceblue;
+    border-color: aliceblue;
+}
+
+tbody tr:hover {
+    background: rgb(249, 200, 255);
+    color: white;
+    border-color:aliceblue;
+}
+
