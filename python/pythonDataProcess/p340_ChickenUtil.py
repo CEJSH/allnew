@@ -78,7 +78,7 @@ class ChickenStore():
         else:  # 굽네 매장
             self.soup = None
             # filepath = 'c:/chromedriver.exe'
-            filepath = './chromedriver_win32/chromedriver'
+            filepath = './chromedriver_linux64/chromedriver'
             self.driver = webdriver.Chrome(filepath)
             self.driver.get(self.url)
         # print('생성자 호출됨')
