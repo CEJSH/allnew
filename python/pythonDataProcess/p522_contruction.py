@@ -3,18 +3,18 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 import os.path
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.relpath("./")))
-secret_file = os.path.join(BASE_DIR, '../secret.json')
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.relpath("./")))
+# secret_file = os.path.join(BASE_DIR, '../secret.json')
 
-with open(secret_file) as f:
-    secrets = json.loads(f.read())
+# with open(secret_file) as f:
+#     secrets = json.loads(f.read())
 
-def get_secret(setting, secrets=secrets):
-    try:
-        return secrets[setting]
-    except KeyError:
-        errorMsg = "Set the {} environment variable.".format(setting)
-        return errorMsg
+# def get_secret(setting, secrets=secrets):
+#     try:
+#         return secrets[setting]
+#     except KeyError:
+#         errorMsg = "Set the {} environment variable.".format(setting)
+#         return errorMsg
         
 def getRequestUrl(url):
     req = urllib.request.Request(url)
@@ -28,10 +28,11 @@ def getRequestUrl(url):
         return None
 
 def getConstructionData(pageNo, numOfRows):
-    end_point = 'http://apis.data.go.kr/1613000/ArchPmsService_v2'
-
+    end_point = 'http://apis.data.go.kr/1613000/ArchPmsService_v2/getApBasisOulnInfo'
     parameters = '?'
-    parameters += "ServiceKey=" + get_secret("data_apiKey")
+    parameters += "serviceKey=" + "U6mE%2FsVh5ntHHu%2B1itc5F4n7G47gHusiLVHD1%2B5ofQfZBK8Vh%2BFw4ByUTXcW9Avf4O0MO%2BNTI3RTBn%2FRA4FGuQ%3D%3D"
+    parameters += "&sigunguCd=" + str(11620)
+    parameters += "&bjdongCd=" +str(00000)
     parameters += "&pageNo=" + str(pageNo) 
     parameters += "&numOfRows=" + str(numOfRows) 
     url = end_point + parameters
@@ -48,42 +49,33 @@ def getConstructionData(pageNo, numOfRows):
 dataList = []
 
 pageNo = 1 
-numOfRows = 2 
+numOfRows = 10
 nPage = 0
 while(True):
     print('pageNo : %d, nPage : %d' % (pageNo, nPage))
-    xmlData = getBicycleData(pageNo, numOfRows)
+    xmlData = getConstructionData(pageNo, numOfRows)
     print(xmlData)
     xmlTree = ET.fromstring(xmlData)
 
-    if (xmlTree.find('header').find('resultMsg').text == 'success'):
+    if (xmlTree.find('header').find('resultMsg').text == 'NORMAL SERVICE.'):
         totalCount = int(xmlTree.find('body').find('totalCount').text)
         print('데이터 총 개수 : ', totalCount)  
 
-        listTree = xmlTree.find('body').find('data').findall('list')
+        listTree = xmlTree.find('body').find('items').findall('item')
         print(listTree)
 
         for node in listTree:
-            bikeFirstLanes = node.find("bikeFirstLanes").text
-            bikeFirstLanesRatio = node.find("bikeFirstLanesRatio").text
-            bikeLanesRatio = node.find("bikeLanesRatio").text
-            bikeOnlyLanes = node.find("bikeOnlyLanes")
-            if bikeOnlyLanes == None :
-                bikeOnlyLanes = ""
-            else :
-                bikeOnlyLanes = bikeOnlyLanes.text
-            bikeOnlyLanesRatio = node.find("bikeOnlyLanesRatio").text
-            cycleRoute = node.find("cycleRoute").text
-            entId = node.find("entId").text
-            gugun = node.find("gugun").text
-            pedestrianBikeLanes = node.find("pedestrianBikeLanes").text
-            pedestrianBikeLanesRatio = node.find("pedestrianBikeLanesRatio").text
+            platPlc = node.find("platPlc").text
+            mainPurpsCdNm = node.find("mainPurpsCdNm").text
+            stcnsSchedDay = node.find("stcnsSchedDay").text
+            stcnsDelayDay = node.find("stcnsDelayDay").text
+            realStcnsDay = node.find("realStcnsDay").text
+            jiyukCdNm = node.find("jiyukCdNm").text
 
-            onedict = {'자전거우선도로':bikeFirstLanes, \
-                       '자전거우선도로비율':bikeFirstLanesRatio, '자전거전용도로비율':bikeLanesRatio, \
-                       '자전거전용차로':bikeOnlyLanes, '자전거전용차로비율':bikeOnlyLanesRatio, \
-                       '자전거전용도로':cycleRoute, '고유번호':entId, '군구':gugun, \
-                       '자전거보행자겸용도로':pedestrianBikeLanes, '자전거보행자겸용도로비율':pedestrianBikeLanesRatio}
+            onedict = {'대지위치':platPlc, \
+                       '주용도코드명':mainPurpsCdNm, '착공예정일':stcnsSchedDay, \
+                       '착공연기일':stcnsDelayDay, '실제착공일':realStcnsDay, \
+                       '지역코드명':jiyukCdNm}
             dataList.append(onedict)
 
         if totalCount == 0:
@@ -96,7 +88,7 @@ while(True):
     else :
         break
 
-savedFilename = 'xx_construction.csv'
+savedFilename = 'xx_construction_gwanakgoo.csv'
 
 myframe = pd.DataFrame(dataList)
 myframe.to_csv(savedFilename)

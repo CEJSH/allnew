@@ -45,7 +45,7 @@ async def getData(today=None):
     params += '&status_dt=' + str(today)
 
     url += params
-    print(url)
+    print(url)\
 
     response = requests.get(url)
     print(response)

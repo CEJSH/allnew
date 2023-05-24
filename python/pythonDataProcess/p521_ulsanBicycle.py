@@ -29,6 +29,7 @@ def getRequestUrl(url):
 
 def getBicycleData(pageNo, numOfRows):
     end_point = 'http://apis.data.go.kr/6310000/ulsanbicyclepath/getUlsanbicyclepathList'
+    
 
     parameters = '?'
     parameters += "ServiceKey=" + get_secret("data_apiKey")

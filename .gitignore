@@ -29,6 +29,7 @@ node/config/pool.js
 ## python
 python/**/.venv
 python/**/__pycache__/
+python/**/node_modules/
 python/**/.idea
 python/secret.json
 
