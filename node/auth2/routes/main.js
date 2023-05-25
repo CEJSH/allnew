@@ -84,7 +84,7 @@ app.get('/searchid', async (req, res) => {
         'ok': true,
         'result': [],
         'service': "select"
-    }
+    } .
     console.log(rows);
     if (rows.length > 0) {
         response['result'] = rows;

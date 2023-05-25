@@ -17,6 +17,7 @@ import numpy as np
 import time
 import logging
 import folium
+from geopy.geocoders import Nominatim
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 
@@ -56,6 +57,11 @@ guList = ['강남구','금천구','영등포구']
 dongList = ['역삼동','개포동','청담동','삼성동','대치동','신사동','논현동','압구정동','세곡동','자곡동','율현동','일원동','수서동','도곡동',
 '가산동','독산동','시흥동','영등포동','영등포동1가','영등포동2가','영등포동3가','영등포동4가','영등포동5가','영등포동6가','영등포동7가','영등포동8가','여의도동','당산동1가','당산동2가','당산동3가','당산동4가','당산동5가','당산동6가','당산동',
 '도림동','문래동1가','문래동2가','문래동3가','문래동4가','문래동5가','문래동6가','양평동1가','양평동2가','양평동3가','양평동4가','양평동5가','양평동6가','양화동','신길동','대림동','양평동']
+
+info = []
+my_gu = ['강남', '영등포', '금천']
+my_dong = []
+
 with open(secret_file) as f:
     secrets = json.loads(f.read())
 
@@ -146,6 +152,13 @@ print('Connected to Mongodb....')
 mydb = client['test']
 mycol = mydb['testdb']
 
+mydb = client['test']
+mycoll = mydb['testdf']
+
+for i in range(len(list(mycoll.find()))):
+    for dong in mycoll.find()[i]['administrative_district']:
+        my_dong.append(dong)
+
 @app.get('/')
 async def healthCheck():
     return "OK"
@@ -155,22 +168,24 @@ async def getconstData():
     return list(mycol.find({}))
 
 @app.get('/getParkdata')
-async def getParkdata(sigungu=None):
+async def getParkdata(sigudong=None):
 
     end_point = 'http://192.168.1.76:5000/data'
     parameters = '?'
-    parameters += '동이름='
-    parameters += sigungu
+    parameters += '구이름='
+    parameters += sigudong
     url = end_point + parameters
 
     print('URL')
     print(url)
-
+    
     result = json.loads(str(requests.get(url).text))
+    print(type(result))
     if result == None:
         return None
     else:
         return result
+
 
 @app.get('/getthree_gudata')
 async def getprocessedData():
@@ -194,10 +209,10 @@ async def getprocessedData():
                         if address.find(' 외') > 0:
                             start = address.find(' 외')
                             address = address[:start]
-                            onedict = {'준공예정일':constCompleteD, \
-                                        '대지위치':address, '착공일':constStartD, \
-                                        '주용도':purpose}
-                            dataList.append(onedict)
+                        onedict = {'준공예정일':constCompleteD, \
+                                    '대지위치':address, '착공일':constStartD, \
+                                    '주용도':purpose}
+                        dataList.append(onedict)
             elif i == 1:
                     for item in jsonData['data']:
                         constCompleteD = item['준공예정일자']
@@ -207,10 +222,10 @@ async def getprocessedData():
                         if address.find(' 외') > 0:
                             start = address.find(' 외')
                             address = address[:start]
-                            onedict = {'준공예정일':constCompleteD, \
-                                        '대지위치':address, '착공일':constStartD, \
-                                        '주용도':purpose}
-                            dataList.append(onedict)
+                        onedict = {'준공예정일':constCompleteD, \
+                                    '대지위치':address, '착공일':constStartD, \
+                                    '주용도':purpose}
+                        dataList.append(onedict)
             elif i == 2:
                     for item in jsonData['data']:
                         constCompleteD = item['공사 종료일']
@@ -220,10 +235,10 @@ async def getprocessedData():
                         if address.find(' 외') > 0:
                             start = address.find(' 외')
                             address = address[:start]
-                            onedict = {'준공예정일':constCompleteD, \
-                                        '대지위치':address, '착공일':constStartD, \
-                                        '주용도':purpose}
-                            dataList.append(onedict)
+                        onedict = {'준공예정일':constCompleteD, \
+                                    '대지위치':address, '착공일':constStartD, \
+                                    '주용도':purpose}
+                        dataList.append(onedict)
         if totalCount == 0:
             break
         nPage = math.ceil(totalCount / perPage)
@@ -246,48 +261,57 @@ async def getprocessedData():
     return list(mycol.find({}))
 
 @app.get('/getsearchedareadata')
-async def getsearchedareadata(sigudong=None):
+async def getsearchedareadata(sigudong):
     if sigudong is None:
         return "There's no data you want. input the region."
     threegudata = await getconstData()
-    
+
     if sigudong[-1] == '구' and sigudong in sigunguCdList.keys():
         showList=[]
         address=[]
+        print(1)
         print(sigunguCdList.keys())
         for i in threegudata:
             if sigudong in i['대지위치']:
                 showList.append(i)
                 address.append(i['대지위치'])
         await drawMap(address)
+        await saveMap(sigudong)
         print(showList)
         return showList
     elif sigudong[-1] == '동' and sigudong in dongList:
         # myquery = {'대지위치' : {"$regex": f"^서울특별시 {sigudong}"}}
         showList=[]
         address=[]
+        print(2)
         for i in threegudata:
             if sigudong in i['대지위치']:
+                # print(i['대지위치'])
                 showList.append(i)
                 address.append(i['대지위치'])
         await drawMap(address)
+        await saveMap(sigudong)
         print(showList)
         return showList
 
     elif (sigudong[-1] != '동' and sigudong[-1] != '구') and (sigudong + '동' in dongList or sigudong + '구' in sigunguCdList.keys()):
         showList=[]
         address=[]
+        print(3)
         for i in threegudata:
+            print(i['대지위치'])
             if sigudong in i['대지위치']:
+                # print(i['대지위치'])
                 showList.append(i)
                 address.append(i['대지위치'])
+        print(address)
         await drawMap(address)
+        await saveMap(sigudong)
         print(showList)
         return showList
     else:
         return "There's no information about the region you want"
        
-
 
 @app.get('/getmorethantwomonthadata')
 async def getmorethantwomonthdata(sigudong=None):
@@ -332,20 +356,35 @@ async def admindelete():
     print(x.deleted_count, " documents deleted.")
     return list(mycol.find({}))
 
-filename = './result.html'
-
+#################################################################################################################################################################################
 header = {'Authorization': 'KakaoAK ' + get_secret("kakao_apiKey")}
 global url
+global foli_map
 async def drawMap(address):
-    foli_map = folium.Map(zoom_start=17)
-    num = 1
+    global foli_map
     print(address)
+    if '강남' in address[0]:
+        latt =  37.498095
+        longt = 127.027610
+    elif '금천' in address[0]:
+        latt = 37.4565
+        longt = 126.8954
+    else:
+        latt = 37.5262
+        longt = 126.8959
+
+    foli_map = folium.Map(location=[latt, longt], zoom_start=15)
+    num = 1
+
     for i in address:
         
         address_word = i
 
         url = 'https://dapi.kakao.com/v2/local/search/address.json?query=' + address_word
         
+        # geo_local = Nominatim(user_agent='South Korea')
+
+
         address_latlng = await getGeocoder(url)
         latitude = address_latlng[0]
         longitude = address_latlng[1]
@@ -358,11 +397,45 @@ async def drawMap(address):
         myicon = folium.Icon(color='red', icon='info-sign')
         marker = folium.Marker([latitude, longitude], popup=constrinfo).add_to(foli_map)
 
-        folium.Circle([latitude, longitude], radius=60, color='blue', fill_color='#D5F5E3', fill=False, popup=constrinfo).add_to(foli_map)
+        folium.Circle([latitude, longitude], radius=60, color='#ffffgg', fill_color='#fffggg', fill=False, popup=constrinfo).add_to(foli_map)
         num += 1 
+    # foli_map.save('public/result.html')
+    # print('file saved...')      
 
-    foli_map.save(filename)
-    print('file saved...')
+async def saveMap(sigudong):   
+    global foli_map
+    if sigudong is None:
+        return "지역 이름을 입력하세요."
+    elif sigudong in my_gu:
+        for data in mycoll.find():
+            if data['autonomous_district'] == f'{sigudong}구':
+                info.append(data)
+
+        geo_local = Nominatim(user_agent='South Korea')
+        geo = geo_local.geocode(info[0]['autonomous_district'])
+        x_y = [geo.latitude, geo.longitude]
+
+        # foli_map = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
+        for data in info:
+            latitude = data['lat']
+            longtitude = data['lng']
+            dong_name = data['administrative_district']
+            radius = data['noise']
+            folium.Circle([latitude, longtitude], radius=radius * 10, color='red', fill_color='red', fill=False, popup=dong_name).add_to(foli_map)
+        return foli_map.save('public/result.html')
+    elif len(sigudong) == 2 and sigudong[0] in my_dong and sigudong[1] in my_dong:
+        geo_local = Nominatim(user_agent='South Korea')
+        geo = geo_local.geocode(sigudong)
+        x_y = [geo.latitude, geo.longitude]
+        radius = mycoll.find_one({'administrative_district': {"$regex": f"^{sigudong}"}})['noise']
+
+        foli_map = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
+        folium.Circle([x_y[0], x_y[1]], radius=radius * 10, color='red', fill_color='red', fill=False, popup=f'{sigudong}동').add_to(foli_map)
+        return foli_map.save('public/result.html')
+    else:
+        return "입력값을 다시 확인해주세요!" 
+    # foli_map.save('public/result.html')
+    # print('file saved...')
 
 async def getGeocoder(url):
     print(url)
@@ -382,3 +455,241 @@ async def getGeocoder(url):
         result = "ERROR[" + str(r.status_code) + "]"
 
     return result
+
+
+
+client_id = "HfVmgn5t2ERUmJngZKdN"  # 개발자센터에서 발급받은 Client ID 값
+client_secret = "lBR7c4nAy7"  # 개발자센터에서 발급받은 Client Secret 값
+
+def ToEn(koText):
+    encText = urllib.parse.quote(koText)
+    data = "source=ko&target=en&text=" + encText
+    url = "https://openapi.naver.com/v1/papago/n2mt"
+    request = urllib.request.Request(url)
+    request.add_header("X-Naver-Client-Id", client_id)
+    request.add_header("X-Naver-Client-Secret", client_secret)
+    response = urllib.request.urlopen(request, data=data.encode("utf-8"))
+    rescode = response.getcode()
+    if (rescode == 200):
+        response_body = response.read()
+        result = response_body.decode('utf-8')
+        d = json.loads(result)
+        # print('--- Korean to English --- ')
+        # print('번역전 : ', koText)
+        # print('번역후 : ', d['message']['result']['translatedText'])
+
+    else:
+        print("Error Code:" + rescode)
+
+def ToKo(egText):
+    kocText = urllib.parse.quote(egText)
+    data = "source=en&target=ko&text=" + kocText
+    url = "https://openapi.naver.com/v1/papago/n2mt"
+    request = urllib.request.Request(url)
+    request.add_header("X-Naver-Client-Id", client_id)
+    request.add_header("X-Naver-Client-Secret", client_secret)
+    response = urllib.request.urlopen(request, data=data.encode("utf-8"))
+    rescode = response.getcode()
+    if (rescode == 200):
+        response_body = response.read()
+        result = response_body.decode('utf-8')
+        d = json.loads(result)
+        # print('--- English to Korean --- ')
+        # print('번역전 : ', egText)
+        # print('번역후 : ', d['message']['result']['translatedText'])
+        return d['message']['result']['translatedText']
+
+    else:
+        print("Error Code:" + rescode)
+
+
+@app.get('/jserver_to_mongo')
+async def getjs():
+    url = 'http://192.168.1.158:5000/DATA'
+    result = json.loads(str(requests.get(url).text))
+
+    full_df = pd.DataFrame(result)
+
+    my_df = full_df[['autonomous_district', 'administrative_district', 'region', 'max_noise', 'min_noise', 'avg_noise', 'sensing_time']].replace('', 0).replace('Doksan-dong1', 'Doksan1-dong').replace('Dangsan-dong1', 'Dangsan1-dong').replace('Dangsan-dong2', 'Dangsan2-dong')
+
+    myframe = my_df.loc[(my_df.autonomous_district == 'Gangnam-gu') | (my_df.autonomous_district == 'Gwanak-gu') | (my_df.autonomous_district == 'Geumcheon-gu') | (my_df.autonomous_district == 'Yeongdeungpo-gu')]
+
+    # 강남구의 전체 동
+    gangnam_dongs = my_df.loc[(my_df.autonomous_district == 'Gangnam-gu')][['administrative_district']].drop_duplicates()
+    gangnam_dongs_list = gangnam_dongs.values
+
+    # 금천구의 전체 동
+    geumcheon_dongs = my_df.loc[(my_df.autonomous_district == 'Geumcheon-gu')][['administrative_district']].drop_duplicates()
+    geumcheon_dongs_list = geumcheon_dongs.values
+
+    # 영등포구의 전체 동
+    yeongdeungpo_dongs = my_df.loc[(my_df.autonomous_district == 'Yeongdeungpo-gu')][['administrative_district']].drop_duplicates()
+    yeongdeungpo_dongs_list = yeongdeungpo_dongs.values
+
+    # 강남구 모든 동의 최대소음
+    my_df2_gangnam = my_df.loc[(my_df.autonomous_district == 'Gangnam-gu')][['administrative_district', 'max_noise']].replace('', 0)
+
+    # 금천구 모든 동의 최대소음
+    my_df2_geumcheon = my_df.loc[(my_df.autonomous_district == 'Geumcheon-gu')][['administrative_district', 'max_noise']].replace('', 0)
+
+    # 영등포구 모든 동의 최대소음
+    my_df2_yeongdeungpo = my_df.loc[(my_df.autonomous_district == 'Yeongdeungpo-gu')][['administrative_district', 'max_noise']].replace('', 0)
+
+
+    #######################################################소음 평균 구하기 및 좌표변환#######################################################
+
+
+    gangnam_noise_mean = []
+    gangnam_noise_mean_real = []
+    gangnam_dong_list_real = []
+    for i in range(len(gangnam_dongs_list)):
+        result = my_df2_gangnam.groupby('administrative_district').get_group(f'{gangnam_dongs_list[i][0]}')
+        result.set_index('administrative_district', inplace=True)
+        gangnam_noise_mean.append(result.astype(float).mean().values)
+        gangnam_noise_mean_real.append(gangnam_noise_mean[i][0])
+        gangnam_dong_list_real.append(ToKo(gangnam_dongs_list[i][0]))  # 한글변환
+        # gangnam_dong_list_real.append(gangnam_dongs_list[i][0])
+
+    geumcheon_noise_mean = []
+    geumcheon_noise_mean_real = []
+    geumcheon_dong_list_real = []
+    for i in range(len(geumcheon_dongs_list)):
+        result = my_df2_geumcheon.groupby('administrative_district').get_group(f'{geumcheon_dongs_list[i][0]}')
+        result.set_index('administrative_district', inplace=True)
+        geumcheon_noise_mean.append(result.astype(float).mean().values)
+        geumcheon_noise_mean_real.append(geumcheon_noise_mean[i][0])
+        geumcheon_dong_list_real.append(ToKo(geumcheon_dongs_list[i][0]))  # 한글변환
+        # geumcheon_dong_list_real.append(geumcheon_dongs_list[i][0])
+
+    yeongdeungpo_noise_mean = []
+    yeongdeungpo_noise_mean_real = []
+    yeongdeungpo_dong_list_real = []
+    for i in range(len(yeongdeungpo_dongs_list)):
+        result = my_df2_yeongdeungpo.groupby('administrative_district').get_group(f'{yeongdeungpo_dongs_list[i][0]}')
+        result.set_index('administrative_district', inplace=True)
+        yeongdeungpo_noise_mean.append(result.astype(float).mean().values)
+        yeongdeungpo_noise_mean_real.append(yeongdeungpo_noise_mean[i][0])
+        yeongdeungpo_dong_list_real.append(ToKo(yeongdeungpo_dongs_list[i][0])) # 한글변환
+        # yeongdeungpo_dong_list_real.append(yeongdeungpo_dongs_list[i][0])
+
+    gangnam_df = pd.DataFrame({'administrative_district': gangnam_dong_list_real, 'noise': gangnam_noise_mean_real})
+    # print(gangnam_df)
+    # print('-' * 50)
+    geumcheon_df = pd.DataFrame({'administrative_district': geumcheon_dong_list_real, 'noise': geumcheon_noise_mean_real})
+    # print(geumcheon_df)
+    # print('-' * 50)
+    yeongdeungpo_df = pd.DataFrame({'administrative_district': yeongdeungpo_dong_list_real, 'noise': yeongdeungpo_noise_mean_real})
+    # print(yeongdeungpo_df)
+    # print('-' * 50)
+
+    gangnam_gu_list = ['강남구'] * len(gangnam_df)
+    geumcheon_gu_list = ['금천구'] * len(geumcheon_df)
+    yeongdeungpo_gu_list = ['영등포구'] * len(yeongdeungpo_df)
+
+    gangnam_soum_total = gangnam_df[['noise']].sum().values
+    print('강남 전체 소음 평균 :', gangnam_soum_total[0] / len(gangnam_dongs))
+
+    geumcheon_soum_total = geumcheon_df[['noise']].sum().values
+    print('금천 전체 소음 평균 :', geumcheon_soum_total[0] / len(geumcheon_dongs))
+
+    yeongdeungpo_soum_total = yeongdeungpo_df[['noise']].sum().values
+    print('영등포 전체 소음 평균 :', yeongdeungpo_soum_total[0] / len(yeongdeungpo_dongs))
+    print('-' * 50)
+
+
+    address_gangnam = gangnam_df['administrative_district']
+    address_geumcheon = geumcheon_df['administrative_district']
+    address_yeongdeungpo = yeongdeungpo_df['administrative_district']
+
+    geo_local = Nominatim(user_agent='South Korea')
+    def geocoding(address):
+        try:
+            geo = geo_local.geocode(address)
+            x_y = [geo.latitude, geo.longitude]
+            return x_y
+        except:
+            return [0,0]
+
+    latitude_gangnam = []
+    longitude_gangnam = []
+    latitude_geumcheon = []
+    longitude_geumcheon = []
+    latitude_yeongdeungpo = []
+    longitude_yeongdeungpo = []
+
+    for i in address_gangnam:
+        latitude_gangnam.append(geocoding(i)[0])
+        longitude_gangnam.append(geocoding(i)[1])
+
+    for j in address_geumcheon:
+        latitude_geumcheon.append(geocoding(j)[0])
+        longitude_geumcheon.append(geocoding(j)[1])
+
+    for k in address_yeongdeungpo:
+        latitude_yeongdeungpo.append(geocoding(k)[0])
+        longitude_yeongdeungpo.append(geocoding(k)[1])
+
+    addr_df_gangnam = pd.DataFrame({'autonomous_district': gangnam_gu_list, 'administrative_district': address_gangnam, 'noise': gangnam_noise_mean_real, 'lat': latitude_gangnam, 'lng': longitude_gangnam})
+    addr_df_gangnam.set_index(['autonomous_district', 'administrative_district'])
+    addr_df_geumcheon = pd.DataFrame({'autonomous_district': geumcheon_gu_list, 'administrative_district': address_geumcheon, 'noise': geumcheon_noise_mean_real, 'lat': latitude_geumcheon, 'lng': longitude_geumcheon})
+    addr_df_geumcheon.set_index(['autonomous_district', 'administrative_district'])
+    addr_df_yeongdeungpo = pd.DataFrame({'autonomous_district': yeongdeungpo_gu_list, 'administrative_district': address_yeongdeungpo, 'noise': yeongdeungpo_noise_mean_real, 'lat': latitude_yeongdeungpo, 'lng': longitude_yeongdeungpo})
+    addr_df_yeongdeungpo.set_index(['autonomous_district', 'administrative_district'])
+    
+    gangnam_dict = addr_df_gangnam.to_dict(orient='index')
+    geumcheon_dict = addr_df_geumcheon.to_dict(orient='index')
+    yeongdeungpo_dict = addr_df_yeongdeungpo.to_dict(orient='index')
+
+    my_dicts = [gangnam_dict, geumcheon_dict, yeongdeungpo_dict]
+    try:
+        for my_dict in my_dicts: 
+            for key_num in range(len(my_dict)):
+                if my_dict[key_num]['administrative_district'] == '도림동':
+                    my_dict[key_num]['lat'] = 37.50872
+                    my_dict[key_num]['lng'] = 126.90113
+                mycoll.insert_one(my_dict[key_num])
+    except ValueError:
+        print("just pass")
+    return list(mycoll.find({}))
+
+@app.get('/noise_in_map')  # 소음데이터 지도에 시각화
+async def getplace(region=None):
+    info = []
+    my_gu = ['강남', '영등포', '금천']
+    my_dong = []
+
+    for i in range(len(list(mycoll.find()))):
+        for dong in mycoll.find()[i]['administrative_district']:
+            my_dong.append(dong)
+
+    if sigudong is None:
+        return "지역 이름을 입력하세요."
+    elif sigudong in my_gu:
+        for data in mycoll.find():
+            if data['autonomous_district'] == f'{sigudong}구':
+                info.append(data)
+
+        geo_local = Nominatim(user_agent='South Korea')
+        geo = geo_local.geocode(info[0]['autonomous_district'])
+        x_y = [geo.latitude, geo.longitude]
+
+        map_osm = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
+        for data in info:
+            latitude = data['lat']
+            longtitude = data['lng']
+            dong_name = data['administrative_district']
+            radius = data['noise']
+            folium.Circle([latitude, longtitude], radius=radius * 10, color='red', fill_color='red', fill=False, popup=dong_name).add_to(map_osm)
+        return map_osm.save('./mymap.html')
+    elif len(sigudong) == 2 and sigudong[0] in my_dong and sigudong[1] in my_dong:
+        geo_local = Nominatim(user_agent='South Korea')
+        geo = geo_local.geocode(sigudong)
+        x_y = [geo.latitude, geo.longitude]
+        radius = mycoll.find_one({'administrative_district': {"$regex": f"^{sigudong}"}})['noise']
+
+        map_osm = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
+        folium.Circle([x_y[0], x_y[1]], radius=radius * 10, color='red', fill_color='red', fill=False, popup=f'{sigudong}동').add_to(map_osm)
+
+        return map_osm.save('./mymap.html')
+    else:
+        return "입력값을 다시 확인해주세요!" 
