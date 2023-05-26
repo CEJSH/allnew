@@ -176,6 +176,7 @@ function template(response, res, sigudong) {
 </style>
   </head>
   <body>
+  
   <div class="container">
   <div class="top-left"><button type='button' onclick='moveto()'>2개월 내 준공 예정공사 제외하기</button></div>
   <div class="center-container">
@@ -187,6 +188,7 @@ function template(response, res, sigudong) {
 </div>
     <hr />
     <iframe src="result.html" frameborder="0" width="100%" height="810"></iframe>
+    
     <script>
     function moveto() {
     document.location.href="http://192.168.1.76:8000/getmorethantwomonthadata?sigudong=${sigudong}"

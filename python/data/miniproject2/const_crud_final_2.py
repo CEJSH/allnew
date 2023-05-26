@@ -277,7 +277,7 @@ async def getsearchedareadata(sigudong):
                 showList.append(i)
                 address.append(i['대지위치'])
         await drawMap(address)
-        await saveMap(sigudong)
+        # await saveMap(sigudong)
 
         return len(address)
     elif sigudong[-1] == '동' and sigudong in dongList:
@@ -291,7 +291,7 @@ async def getsearchedareadata(sigudong):
                 showList.append(i)
                 address.append(i['대지위치'])
         await drawMap(address)
-        await saveMap(sigudong)
+        # await saveMap(sigudong)
         return len(address)
 
     elif (sigudong[-1] != '동' and sigudong[-1] != '구') and (sigudong + '동' in dongList or sigudong + '구' in sigunguCdList.keys()):
@@ -310,7 +310,7 @@ async def getsearchedareadata(sigudong):
             return "There's no information about the region you want"
         else:
             print(address)
-            await drawMap(address,sigudong)
+            await drawMap(address)
             # await saveMap(sigudong)
             return len(address)
     else:
@@ -332,7 +332,7 @@ async def getmorethantwomonthdata(sigudong):
                 showList.append(i)
                 address.append(i['대지위치'])
         await drawMap(address)
-        await saveMap(sigudong)
+        # await saveMap(sigudong)
         return len(address)
     elif sigudong[-1] == '동' and sigudong in dongList:
         # myquery = {'대지위치' : {"$regex": f"^서울특별시 {sigudong}"}}
@@ -343,7 +343,7 @@ async def getmorethantwomonthdata(sigudong):
                 showList.append(i)
                 address.append(i['대지위치'])
         await drawMap(address)
-        await saveMap(sigudong)
+        # await saveMap(sigudong)
         return len(address)
     elif (sigudong[-1] != '동' and sigudong[-1] != '구') and (sigudong + '동' in dongList or sigudong + '구' in sigunguCdList.keys()):
         showList=[]
@@ -353,7 +353,7 @@ async def getmorethantwomonthdata(sigudong):
                 showList.append(i)
                 address.append(i['대지위치'])
         await drawMap(address)
-        await saveMap(sigudong)
+        # await saveMap(sigudong)
         return len(address)
     else:
         return "There's no information about the region you want"
@@ -368,9 +368,9 @@ async def admindelete():
 header = {'Authorization': 'KakaoAK ' + get_secret("kakao_apiKey")}
 global url
 # global foli_map
-async def drawMap(address, sigudong):
+async def drawMap(address):
     
-    # global foli_map
+    global foli_map
     # print(address)
     # if '강남' in address[0]:
     #     latt =  37.498095
