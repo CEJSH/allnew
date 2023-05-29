@@ -58,9 +58,6 @@ dongList = ['역삼동','개포동','청담동','삼성동','대치동','신사�
 '가산동','독산동','시흥동','영등포동','영등포동1가','영등포동2가','영등포동3가','영등포동4가','영등포동5가','영등포동6가','영등포동7가','영등포동8가','여의도동','당산동1가','당산동2가','당산동3가','당산동4가','당산동5가','당산동6가','당산동',
 '도림동','문래동1가','문래동2가','문래동3가','문래동4가','문래동5가','문래동6가','양평동1가','양평동2가','양평동3가','양평동4가','양평동5가','양평동6가','양화동','신길동','대림동','양평동']
 
-info = []
-my_gu = ['강남', '영등포', '금천']
-my_dong = []
 
 with open(secret_file) as f:
     secrets = json.loads(f.read())
@@ -155,9 +152,7 @@ mycol = mydb['testdb']
 mydb = client['test']
 mycoll = mydb['testdf']
 
-for i in range(len(list(mycoll.find()))):
-    for dong in mycoll.find()[i]['administrative_district']:
-        my_dong.append(dong)
+
 
 @app.get('/')
 async def healthCheck():
@@ -169,7 +164,6 @@ async def getconstData():
 
 @app.get('/getParkdata')
 async def getParkdata(sigudong=None):
-
     end_point = 'http://192.168.1.76:5000/data'
     parameters = '?'
     parameters += '구이름='
@@ -180,11 +174,13 @@ async def getParkdata(sigudong=None):
     print(url)
     
     result = json.loads(str(requests.get(url).text))
-    print(type(result))
+    averagearea = result[0]['1인당생활권공원면적(m2)']
+    averagecount = round(result[0]['구별평균공원수'],2)
+    rank = result[0]['rank_dense']
     if result == None:
         return None
     else:
-        return result
+        return averagearea, averagecount, rank
 
 
 @app.get('/getthree_gudata')
@@ -276,10 +272,12 @@ async def getsearchedareadata(sigudong):
                 print(i['대지위치'])
                 showList.append(i)
                 address.append(i['대지위치'])
-        await drawMap(address)
-        await saveMap(sigudong)
-
-        return len(address)
+        await drawMap(address,sigudong)
+        gu = address[0].split(" ")[1]
+        park = await getParkdata(gu)
+        print('park')
+        return gu, len(address),park
+        
     elif sigudong[-1] == '동' and sigudong in dongList:
         # myquery = {'대지위치' : {"$regex": f"^서울특별시 {sigudong}"}}
         showList=[]
@@ -290,10 +288,12 @@ async def getsearchedareadata(sigudong):
                 # print(i['대지위치'])
                 showList.append(i)
                 address.append(i['대지위치'])
-        await drawMap(address)
-        await saveMap(sigudong)
-        return len(address)
-
+        await drawMap(address,sigudong)
+        gu = address[0].split(" ")[1]
+        park = await getParkdata(gu)
+        print('park')
+        return gu, len(address),park
+        
     elif (sigudong[-1] != '동' and sigudong[-1] != '구') and (sigudong + '동' in dongList or sigudong + '구' in sigunguCdList.keys()):
         showList=[]
         address=[]
@@ -311,13 +311,15 @@ async def getsearchedareadata(sigudong):
         else:
             print(address)
             await drawMap(address,sigudong)
-            # await saveMap(sigudong)
-            return len(address)
+            gu = address[0].split(" ")[1]
+            park = await getParkdata(gu)
+            print('park')
+            return gu, len(address),park
     else:
         return "There's no information about the region you want"
        
 
-@app.get('/getmorethantwomonthadata')
+@app.get('/getmorethantwomonthdata')
 async def getmorethantwomonthdata(sigudong):
     if sigudong is None:
         return "There's no data you want. input the region."
@@ -331,9 +333,10 @@ async def getmorethantwomonthdata(sigudong):
             if sigudong in i['대지위치'] and datetime.datetime.strptime(i['준공예정일'],'%Y-%m-%d') > datetime.datetime.now() + relativedelta(months=2):
                 showList.append(i)
                 address.append(i['대지위치'])
-        await drawMap(address)
-        await saveMap(sigudong)
-        return len(address)
+        await drawMap(address, sigudong)
+        gu = address[0].split(" ")[1]
+        park = await getParkdata(gu)
+        return gu, len(address),park
     elif sigudong[-1] == '동' and sigudong in dongList:
         # myquery = {'대지위치' : {"$regex": f"^서울특별시 {sigudong}"}}
         showList=[]
@@ -342,9 +345,10 @@ async def getmorethantwomonthdata(sigudong):
             if sigudong in i['대지위치'] and datetime.datetime.strptime(i['준공예정일'],'%Y-%m-%d') > datetime.datetime.now() + relativedelta(months=2):
                 showList.append(i)
                 address.append(i['대지위치'])
-        await drawMap(address)
-        await saveMap(sigudong)
-        return len(address)
+        await drawMap(address,sigudong)
+        gu = address[0].split(" ")[1]
+        park = await getParkdata(gu)
+        return gu, len(address),park
     elif (sigudong[-1] != '동' and sigudong[-1] != '구') and (sigudong + '동' in dongList or sigudong + '구' in sigunguCdList.keys()):
         showList=[]
         address=[]
@@ -352,9 +356,11 @@ async def getmorethantwomonthdata(sigudong):
             if sigudong in i['대지위치'] and datetime.datetime.strptime(i['준공예정일'],'%Y-%m-%d') > datetime.datetime.now() + relativedelta(months=2):
                 showList.append(i)
                 address.append(i['대지위치'])
-        await drawMap(address)
-        await saveMap(sigudong)
-        return len(address)
+        await drawMap(address,sigudong)
+        gu = address[0].split(" ")[1]
+        getParkdata(gu)
+        park = await getParkdata(gu)
+        return gu, len(address),park
     else:
         return "There's no information about the region you want"
 
@@ -367,26 +373,26 @@ async def admindelete():
 #################################################################################################################################################################################
 header = {'Authorization': 'KakaoAK ' + get_secret("kakao_apiKey")}
 global url
-# global foli_map
+# foli_map = None
 async def drawMap(address, sigudong):
+    info = []
+    my_gu = ['강남', '영등포', '금천']
+    my_dong = []
+    for i in range(len(list(mycoll.find()))):
+        for dong in mycoll.find()[i]['administrative_district']:
+            my_dong.extend(dong)
+    foli_map = None
+    layer = "Base"
+    tileType = "png"
+    tiles = f"http://api.vworld.kr/req/wmts/1.0.0/{'75AA8129-06F2-3A68-8C64-96E5728075DF'}/{layer}/{{z}}/{{y}}/{{x}}.{tileType}"
+    attr = "Vworld"
     
-    # global foli_map
-    # print(address)
-    # if '강남' in address[0]:
-    #     latt =  37.498095
-    #     longt = 127.027610
-    # elif '금천' in address[0]:
-    #     latt = 37.4565
-    #     longt = 126.8954
-    # else:
-    #     latt = 37.5262
-    #     longt = 126.8959
     geo_local = Nominatim(user_agent='South Korea')
     geo = geo_local.geocode(address[0])
     x_y = [geo.latitude, geo.longitude]
 
     foli_map = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
-    # foli_map = folium.Map(location=[latt, longt], zoom_start=15)
+    
     num = 1
 
     for i in address:
@@ -406,11 +412,13 @@ async def drawMap(address, sigudong):
 
         constrinfo = '공사장' + str(num)
         myicon = folium.Icon(color='red', icon='info-sign')
-        marker = folium.Marker([latitude, longitude], popup=constrinfo).add_to(foli_map)
+        popup = folium.Popup(folium.IFrame(f'{address_word}'), min_width=150, max_width=130)
+        marker = folium.Marker([latitude, longitude], popup=popup).add_to(foli_map)
 
         folium.Circle([latitude, longitude], radius=60, color='#ffffgg', fill_color='#fffggg', fill=False, popup=constrinfo).add_to(foli_map)
         print("circle")
         num += 1 
+    folium.TileLayer(tiles=tiles, attr=attr, overlay=True, control=True).add_to(foli_map)
     # return foli_map
     # foli_map.save('public/result.html')
     # print('file saved...')      
@@ -419,25 +427,7 @@ async def drawMap(address, sigudong):
     # global foli_map
     if sigudong is None:
         return "지역 이름을 입력하세요."
-    elif sigudong in my_gu:
-        for data in mycoll.find():
-            if data['autonomous_district'] == f'{sigudong}구':
-                info.append(data)
-
-        # geo_local = Nominatim(user_agent='South Korea')
-        # geo = geo_local.geocode(info[0]['autonomous_district'])
-        # x_y = [geo.latitude, geo.longitude]
-
-        # foli_map = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
-        for data in info:
-            latitude = data['lat']
-            longtitude = data['lng']
-            dong_name = data['administrative_district']
-            radius = data['noise']
-            folium.Circle([latitude, longtitude], radius=radius * 10, color='red', fill_color='red', fill=False, popup=dong_name).add_to(foli_map)
-            print('circle2')
-        return foli_map.save('public/result.html')
-    elif sigudong not in my_gu and sigudong[len(sigudong)-1] == '구':
+    elif sigudong[0:-1] in my_gu and sigudong[-1] == '구':
         for data in mycoll.find():
             if data['autonomous_district'] == sigudong:
                 info.append(data)
@@ -446,34 +436,103 @@ async def drawMap(address, sigudong):
             longtitude = data['lng']
             dong_name = data['administrative_district']
             radius = data['noise']
-            folium.Circle([latitude, longtitude], radius=radius * 10, color='red', fill_color='red', fill=False, popup=dong_name).add_to(foli_map)
+            popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
+            if radius > 70:
+                color = 'black'
+            elif 70 >= radius > 60:
+                color = 'red'
+            elif 60 >= radius > 50:
+                color = 'yellow'
+            else:
+                color = 'green'
+            folium.Circle([latitude, longtitude], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
             print('circle2')
         return foli_map.save('public/result.html')
 
-    elif len(sigudong) == 2 and sigudong[0] in my_dong and sigudong[1] in my_dong:
+    elif len(sigudong) > 2 and sigudong[-1] == '동':
+        user_dong = []
+        info = list(mycoll.find())
+        for data in info:
+            if sigudong[:-1] in data['administrative_district']:
+                user_dong.append(data)
+
+        # geo_local = Nominatim(user_agent='South Korea')
+        if sigudong == '삼성동':
+            geo = geo_local.geocode('삼성1동')
+        else:
+            geo = geo_local.geocode(sigudong)
+        # x_y = [geo.latitude, geo.longitude]
+        # map_osm = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
+        folium.TileLayer(tiles=tiles, attr=attr, overlay=True, control=True).add_to(foli_map)
+
+        for dong in user_dong:
+            latitude = dong['lat']
+            longtitude = dong['lng']
+            dong_name = dong['administrative_district']
+            radius = dong['noise']
+            popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
+            if radius > 70:
+                color = 'black'
+            elif 70 >= radius > 60:
+                color = 'red'
+            elif 60 >= radius > 50:
+                color = 'yellow'
+            else:
+                color = 'green'
+            folium.Circle([latitude, longtitude], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
+        return foli_map.save('public/result.html')
+
+    elif sigudong in my_gu:
         for data in mycoll.find():
-            if sigudong in data['administrative_district']:
+            if data['autonomous_district'] == f'{sigudong}구':
                 info.append(data)
+        folium.TileLayer(tiles=tiles, attr=attr, overlay=True, control=True).add_to(foli_map)
         for data in info:
             latitude = data['lat']
             longtitude = data['lng']
             dong_name = data['administrative_district']
             radius = data['noise']
-            folium.Circle([latitude, longtitude], radius=radius * 10, color='red', fill_color='red', fill=False, popup=dong_name).add_to(foli_map)
-            print('circle2')
-        # geo_local = Nominatim(user_agent='South Korea')
-        # geo = geo_local.geocode(sigudong)
-        # x_y = [geo.latitude, geo.longitude]
-        # radius = mycoll.find_one({'administrative_district': {"$regex": f"^{sigudong}"}})['noise']
+            popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
+            if radius > 70:
+                color = 'black'
+            elif 70 >= radius > 60:
+                color = 'red'
+            elif 60 >= radius > 50:
+                color = 'yellow'
+            else:
+                color = 'green'
+            folium.Circle([latitude, longtitude], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
 
-        # # foli_map = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14) #범인은 너였다..
-        # folium.Circle([x_y[0], x_y[1]], radius=radius * 10, color='red', fill_color='red', fill=False, popup=f'{sigudong}동').add_to(foli_map)
-        # print('circle2')
         return foli_map.save('public/result.html')
-    else:
-        return "입력값을 다시 확인해주세요!" 
     # foli_map.save('public/result.html')
     # print('file saved...')
+    elif len(sigudong) == 2 and sigudong[0] in my_dong and sigudong[1] in my_dong:  # '동'을 빼고 동 이름을 입력시
+        user_dong = []
+        info = list(mycoll.find())
+        for data in info:
+            if sigudong in data['administrative_district']:
+                user_dong.append(data)
+
+        folium.TileLayer(tiles=tiles, attr=attr, overlay=True, control=True).add_to(foli_map)
+
+        for dong in user_dong:
+            dong_name = dong['administrative_district']
+            radius = dong['noise']
+
+            popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
+            if radius > 70:
+                color = 'black'
+            elif 70 >= radius > 60:
+                color = 'red'
+            elif 60 >= radius > 50:
+                color = 'yellow'
+            else:
+                color = 'green'
+            folium.Circle([dong['lat'], dong['lng']], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
+        return foli_map.save('public/result.html')
+
+    else:
+        return "입력값을 다시 확인해주세요!" 
 
 async def getGeocoder(url):
     print(url)
@@ -575,7 +634,6 @@ async def getjs():
 
 
     #######################################################소음 평균 구하기 및 좌표변환#######################################################
-
 
     gangnam_noise_mean = []
     gangnam_noise_mean_real = []
@@ -684,45 +742,3 @@ async def getjs():
     except ValueError:
         print("just pass")
     return list(mycoll.find({}))
-
-# @app.get('/noise_in_map')  # 소음데이터 지도에 시각화
-# async def getplace(region=None):
-#     info = []
-#     my_gu = ['강남', '영등포', '금천']
-#     my_dong = []
-
-#     for i in range(len(list(mycoll.find()))):
-#         for dong in mycoll.find()[i]['administrative_district']:
-#             my_dong.append(dong)
-
-#     if sigudong is None:
-#         return "지역 이름을 입력하세요."
-#     elif sigudong in my_gu:
-#         for data in mycoll.find():
-#             if data['autonomous_district'] == f'{sigudong}구':
-#                 info.append(data)
-
-#         geo_local = Nominatim(user_agent='South Korea')
-#         geo = geo_local.geocode(info[0]['autonomous_district'])
-#         x_y = [geo.latitude, geo.longitude]
-
-#         map_osm = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
-#         for data in info:
-#             latitude = data['lat']
-#             longtitude = data['lng']
-#             dong_name = data['administrative_district']
-#             radius = data['noise']
-#             folium.Circle([latitude, longtitude], radius=radius * 10, color='red', fill_color='red', fill=False, popup=dong_name).add_to(map_osm)
-#         return map_osm.save('./mymap.html')
-#     elif len(sigudong) == 2 and sigudong[0] in my_dong and sigudong[1] in my_dong:
-#         geo_local = Nominatim(user_agent='South Korea')
-#         geo = geo_local.geocode(sigudong)
-#         x_y = [geo.latitude, geo.longitude]
-#         radius = mycoll.find_one({'administrative_district': {"$regex": f"^{sigudong}"}})['noise']
-
-#         map_osm = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
-#         folium.Circle([x_y[0], x_y[1]], radius=radius * 10, color='red', fill_color='red', fill=False, popup=f'{sigudong}동').add_to(map_osm)
-
-#         return map_osm.save('./mymap.html')
-#     else:
-#         return "입력값을 다시 확인해주세요!" 
