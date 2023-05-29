@@ -18,6 +18,8 @@ import time
 import logging
 import folium
 from geopy.geocoders import Nominatim
+import asyncio
+from haversine import haversine
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 
@@ -154,6 +156,7 @@ mycoll = mydb['testdf']
 
 
 
+
 @app.get('/')
 async def healthCheck():
     return "OK"
@@ -162,6 +165,18 @@ async def healthCheck():
 async def getconstData():
     return list(mycol.find({}))
 
+@app.get('/getdongconstuction')
+async def getdongconstruction():
+    construction = getconstData()
+    gulist=[]
+    donglist=[]
+    for i in construction:
+        print(i)
+        gu = i['대지위치'].split(" ")[1]
+        dong = i['대지위치'].split(" ")[2]
+        gulist.append(gu)
+        donglist.append(dong)
+    print(gulist, donglist)
 @app.get('/getParkdata')
 async def getParkdata(sigudong=None):
     end_point = 'http://192.168.1.76:5000/data'
@@ -172,7 +187,7 @@ async def getParkdata(sigudong=None):
 
     print('URL')
     print(url)
-    
+     
     result = json.loads(str(requests.get(url).text))
     averagearea = result[0]['1인당생활권공원면적(m2)']
     averagecount = round(result[0]['구별평균공원수'],2)
@@ -277,7 +292,7 @@ async def getsearchedareadata(sigudong):
         park = await getParkdata(gu)
         print('park')
         return gu, len(address),park
-        
+
     elif sigudong[-1] == '동' and sigudong in dongList:
         # myquery = {'대지위치' : {"$regex": f"^서울특별시 {sigudong}"}}
         showList=[]
@@ -387,10 +402,12 @@ async def drawMap(address, sigudong):
     tiles = f"http://api.vworld.kr/req/wmts/1.0.0/{'75AA8129-06F2-3A68-8C64-96E5728075DF'}/{layer}/{{z}}/{{y}}/{{x}}.{tileType}"
     attr = "Vworld"
     
+    target = []
     geo_local = Nominatim(user_agent='South Korea')
     geo = geo_local.geocode(address[0])
     x_y = [geo.latitude, geo.longitude]
 
+  
     foli_map = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
     
     num = 1
@@ -403,8 +420,10 @@ async def drawMap(address, sigudong):
         
         # geo_local = Nominatim(user_agent='South Korea')
         address_latlng = await getGeocoder(url)
+
         latitude = address_latlng[0]
         longitude = address_latlng[1]
+        target.append((float(latitude),float(longitude)))
 
         # print('주소지 :', address_word)
         # print('위도 :', latitude)
@@ -419,6 +438,7 @@ async def drawMap(address, sigudong):
         print("circle")
         num += 1 
     folium.TileLayer(tiles=tiles, attr=attr, overlay=True, control=True).add_to(foli_map)
+    print(target)
     # return foli_map
     # foli_map.save('public/result.html')
     # print('file saved...')      
@@ -437,17 +457,27 @@ async def drawMap(address, sigudong):
             dong_name = data['administrative_district']
             radius = data['noise']
             popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
-            if radius > 70:
+            markercount = 0
+            center = (float(latitude), float(longitude))
+
+            for i in range(len(target)):
+                if haversine(center,target[i]) < radius/100:
+                    markercount += 1
+                    print(int(haversine(center,target[i])))
+            if markercount > 9:
                 color = 'black'
-            elif 70 >= radius > 60:
+            elif 9 >= markercount >= 6:
                 color = 'red'
-            elif 60 >= radius > 50:
+            elif 6 > markercount >= 4:
+                color = 'orange'
+            elif 4 > markercount >= 2:
                 color = 'yellow'
             else:
                 color = 'green'
             folium.Circle([latitude, longtitude], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
+            num +=1
             print('circle2')
-        return foli_map.save('public/result.html')
+        return foli_map.save('public/result.html'),
 
     elif len(sigudong) > 2 and sigudong[-1] == '동':
         user_dong = []
@@ -461,6 +491,7 @@ async def drawMap(address, sigudong):
             geo = geo_local.geocode('삼성1동')
         else:
             geo = geo_local.geocode(sigudong)
+        
         # x_y = [geo.latitude, geo.longitude]
         # map_osm = folium.Map(location=[x_y[0], x_y[1]], zoom_start=14)
         folium.TileLayer(tiles=tiles, attr=attr, overlay=True, control=True).add_to(foli_map)
@@ -471,16 +502,25 @@ async def drawMap(address, sigudong):
             dong_name = dong['administrative_district']
             radius = dong['noise']
             popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
-            if radius > 70:
+            markercount = 0
+            center = (float(latitude), float(longitude))
+            for i in range(len(target)):
+                if await round(haversine(center,target[i]),2) < radius/100:
+                    markercount += 1
+            await print(markercount)
+            if markercount > 9:
                 color = 'black'
-            elif 70 >= radius > 60:
+            elif 9 >= markercount >= 6:
                 color = 'red'
-            elif 60 >= radius > 50:
+            elif 6 > markercount >= 4:
+                color = 'orange'
+            elif 4 > markercount >= 2:
                 color = 'yellow'
             else:
                 color = 'green'
             folium.Circle([latitude, longtitude], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
         return foli_map.save('public/result.html')
+
 
     elif sigudong in my_gu:
         for data in mycoll.find():
@@ -493,11 +533,20 @@ async def drawMap(address, sigudong):
             dong_name = data['administrative_district']
             radius = data['noise']
             popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
-            if radius > 70:
+            markercount = 0
+            center = (float(latitude), float(longitude))
+            for i in range(len(target)):
+                if haversine(center,target[i]) < radius/100:
+                    print(haversine(center,target[i]))
+                    markercount += 1
+            
+            if markercount > 9:
                 color = 'black'
-            elif 70 >= radius > 60:
+            elif 9 >= markercount >= 6:
                 color = 'red'
-            elif 60 >= radius > 50:
+            elif 6 > markercount >= 4:
+                color = 'orange'
+            elif 4 > markercount >= 2:
                 color = 'yellow'
             else:
                 color = 'green'
@@ -516,15 +565,26 @@ async def drawMap(address, sigudong):
         folium.TileLayer(tiles=tiles, attr=attr, overlay=True, control=True).add_to(foli_map)
 
         for dong in user_dong:
+            latitude = dong['lat']
+            longtitude = dong['lng']
             dong_name = dong['administrative_district']
             radius = dong['noise']
 
             popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
-            if radius > 70:
+            markercount = 0
+            center = (float(latitude), float(longitude))
+            for i in range(len(target)):
+                if haversine(center,target[i]) < radius/100:
+                    print(haversine(center,target[i]))
+                    markercount += 1
+            
+            if markercount > 9:
                 color = 'black'
-            elif 70 >= radius > 60:
+            elif 9 >= markercount >= 6:
                 color = 'red'
-            elif 60 >= radius > 50:
+            elif 6 > markercount >= 4:
+                color = 'orange'
+            elif 4 > markercount >= 2:
                 color = 'yellow'
             else:
                 color = 'green'
@@ -742,3 +802,4 @@ async def getjs():
     except ValueError:
         print("just pass")
     return list(mycoll.find({}))
+
