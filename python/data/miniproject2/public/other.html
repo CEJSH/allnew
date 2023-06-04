@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <style>
+        body{
+  margin: 0;
+  padding: 0;
+}
+a{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  width: 160px;
+  height: 50px;
+  line-height: 50px;
+  font-size: 20px;
+  text-align: center;
+  font-family: sans-serif;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: #ccc;
+}
+a:before{
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  background: #ff005e;
+  color: #fff;
+  transition: 0.5s;
+  transform-origin: bottom;
+  transform: translatey(-100%) rotatex(90deg);
+}
+a:hover:before
+{
+  transform: translatey(0) rotatex(0deg);
+}
+
+a:after{
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  background: #ea004f;
+  color: #fff;
+  transition: 0.5s;
+  transform-origin: top;
+  transform: translatey(0) rotatex(0deg);
+}
+a:hover:after
+{
+  transform: translatey(100%) rotatex(90deg);
+}
+    </style>
+    <title> 3d Button Hover Effects</title>
+    <link rel="stylesheet" type:"text/class" href="style.css">
+    </head>
+  <body>
+    <h1>어디로 가야하조는 강남구, 관악구, 금천구, 영등포구, 용산구만 조회 가능합니다!</h1>
+    <a href="#" data-text="button">돌아가기</a>
+    <body>
+      </html>

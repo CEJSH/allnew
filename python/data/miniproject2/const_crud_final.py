@@ -20,9 +20,13 @@ import folium
 from geopy.geocoders import Nominatim
 import asyncio
 from haversine import haversine
+from folium import utilities
+from pyppeteer import launch
+import matplotlib.pyplot as plt
+
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
-
+plt.rc('font', family="AppleGothic")
 app = FastAPI()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.relpath("./")))
@@ -55,11 +59,21 @@ sigunguCdList = {
         '중구' : (11140),
         '중랑구' : (11260)
 }
-guList = ['강남구','금천구','영등포구']
-dongList = ['역삼동','개포동','청담동','삼성동','대치동','신사동','논현동','압구정동','세곡동','자곡동','율현동','일원동','수서동','도곡동',
+guList = ['강남구','금천구','영등포구','관악구']
+dongList = ['후암동','용산2가동','남영동','청파동','원효로1동','원효로2동','효창동','용문동','한강로동','이촌1동','이촌2동','이태원1동','이태원2동','한남동','서빙고동','보광동','봉천동','신림동','남현동','역삼동','개포동','청담동','삼성동','대치동','신사동','논현동','압구정동','세곡동','자곡동','율현동','일원동','수서동','도곡동',
 '가산동','독산동','시흥동','영등포동','영등포동1가','영등포동2가','영등포동3가','영등포동4가','영등포동5가','영등포동6가','영등포동7가','영등포동8가','여의도동','당산동1가','당산동2가','당산동3가','당산동4가','당산동5가','당산동6가','당산동',
 '도림동','문래동1가','문래동2가','문래동3가','문래동4가','문래동5가','문래동6가','양평동1가','양평동2가','양평동3가','양평동4가','양평동5가','양평동6가','양화동','신길동','대림동','양평동']
+target = 'map'
+async def map_to_png(foli_map):
+    html = foli_map.get_root().render()
+    browser=await launch(options={'args': ['--no-sandbox']})
 
+    page = await browser.newPage()
+    with utilities.temp_html_filepath(html) as fname:
+        await page.goto('file://{path}'.format(path=fname))
+
+    img_data = await page.screenshot({'path': f'./out_img.png', 'fullPage': 'true', })
+    await browser.close()
 
 with open(secret_file) as f:
     secrets = json.loads(f.read())
@@ -141,6 +155,44 @@ def getGeumcheonData(page, perPage):
     else:
         return json.loads(result)
 
+def getGwanakData(page, perPage):
+
+    end_point = 'https://api.odcloud.kr/api/15108267/v1/uddi:1c455b76-433c-421b-b570-811db6ac9a6d'
+    parameters = '?'
+    parameters += "serviceKey=" + get_secret("data_apiKey")
+    parameters += "&page=" + str(page) 
+    parameters += "&perPage=" + str(perPage) 
+    parameters += "&returnType=" + "JSON" 
+    url = end_point + parameters
+
+    print('URL')
+    print(url)
+
+    result = getRequestUrl(url)
+    if (result == None):
+        return None
+    else:
+        return json.loads(result)
+
+def getYongsanData(page, perPage):
+
+    end_point = 'https://api.odcloud.kr/api/15108231/v1/uddi:76360492-c5bd-4ffb-a4ab-b66d4787216e'
+    parameters = '?'
+    parameters += "serviceKey=" + get_secret("data_apiKey")
+    parameters += "&page=" + str(page) 
+    parameters += "&perPage=" + str(perPage) 
+    parameters += "&returnType=" + "JSON" 
+    url = end_point + parameters
+
+    print('URL')
+    print(url)
+
+    result = getRequestUrl(url)
+    if (result == None):
+        return None
+    else:
+        return json.loads(result)
+
 HOSTNAME = get_secret("ATLAS_Hostname")
 USERNAME = get_secret("ATLAS_Username")
 PASSWORD = get_secret("ATLAS_Password")
@@ -149,34 +201,25 @@ client = mongo_client.MongoClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@{HOSTNAM
 print('Connected to Mongodb....')
 
 mydb = client['test']
-mycol = mydb['testdb']
+mycol = mydb['construction']
 
 mydb = client['test']
-mycoll = mydb['testdf']
+mycoll = mydb['testdb']
 
 
 
+# @app.get('/')
+# async def healthCheck():
+    # return "OK"
 
-@app.get('/')
-async def healthCheck():
-    return "OK"
-
+# get all the construction data in the form of list from mongodb 
 @app.get('/getconstData')
 async def getconstData():
     return list(mycol.find({}))
 
-@app.get('/getdongconstuction')
-async def getdongconstruction():
-    construction = getconstData()
-    gulist=[]
-    donglist=[]
-    for i in construction:
-        print(i)
-        gu = i['대지위치'].split(" ")[1]
-        dong = i['대지위치'].split(" ")[2]
-        gulist.append(gu)
-        donglist.append(dong)
-    print(gulist, donglist)
+# get information about city park in json server and show them in result html with the map.
+#even you just put only dong, the algorithm match the right district and find the data.
+#it is possible by the reason of using response
 @app.get('/getParkdata')
 async def getParkdata(sigudong=None):
     end_point = 'http://192.168.1.76:5000/data'
@@ -198,7 +241,7 @@ async def getParkdata(sigudong=None):
         return averagearea, averagecount, rank
 
 
-@app.get('/getthree_gudata')
+@app.get('/getfive_gudata')
 async def getprocessedData():
     dataList = []
     page = 1 
@@ -207,8 +250,8 @@ async def getprocessedData():
     
     while(True):
         print('page : %d, nPage : %d' % (page, nPage))
-        getDataList = [getGangnamData(page,perPage),getYeongdeungpoData(page,perPage),getGeumcheonData(page,perPage)]
-        for i in range(3):
+        getDataList = [getGangnamData(page,perPage),getYeongdeungpoData(page,perPage),getGeumcheonData(page,perPage),getGwanakData(page, perPage),getYongsanData(page, perPage)]
+        for i in range(5):
             jsonData = getDataList[i]
             totalCount = jsonData['totalCount']
             if i == 0:
@@ -250,6 +293,35 @@ async def getprocessedData():
                                     '대지위치':address, '착공일':constStartD, \
                                     '주용도':purpose}
                         dataList.append(onedict)
+            elif i == 3:
+                    for item in jsonData['data']:
+                        address = item['대지위치']
+                        constStartD = datetime.datetime.strptime(item['착공처리일'],'%Y-%m-%d')
+                        constCompleteD = (datetime.datetime.strptime(item['착공처리일'],'%Y-%m-%d') + relativedelta(years=1)).strftime('%Y-%m-%d')
+                        purpose = item['주용도']
+                        if address.find(' 외') > 0:
+                            start = address.find(' 외')
+                            address = address[:start]
+                        onedict = {'준공예정일':constCompleteD, \
+                                    '대지위치':address, '착공일':constStartD, \
+                                    '주용도':purpose}
+                        dataList.append(onedict)
+            elif i == 4:
+                    for item in jsonData['data']:
+                        address = item['대지위치']
+                        if item['착공처리일'] is None:
+                            pass
+                        else:
+                            constStartD = datetime.datetime.strptime(item['착공처리일'],'%Y-%m-%d')
+                            constCompleteD = (datetime.datetime.strptime(item['착공처리일'],'%Y-%m-%d') + relativedelta(years=1)).strftime('%Y-%m-%d')
+                            purpose = item['주용도']
+                            if address.find(' 외') > 0:
+                                start = address.find(' 외')
+                                address = address[:start]
+                            onedict = {'준공예정일':constCompleteD, \
+                                        '대지위치':address, '착공일':constStartD, \
+                                        '주용도':purpose}
+                            dataList.append(onedict)
         if totalCount == 0:
             break
         nPage = math.ceil(totalCount / perPage)
@@ -264,15 +336,81 @@ async def getprocessedData():
         try:
             if myframe.iloc[i][0] is None:
                 pass
-            elif datetime.datetime.strptime(myframe.iloc[i][0],'%Y-%m-%d') > datetime.datetime.now():
+            elif type(myframe.iloc[i][0]) == datetime.datetime and myframe.iloc[i][0] > datetime.datetime.now():
+                print(myframe.iloc[i][0])
+                mycol.insert_one(myframe.iloc[i].to_dict())
+            elif type(myframe.iloc[i][0]) == str and datetime.datetime.strptime(myframe.iloc[i][0],'%Y-%m-%d') > datetime.datetime.now():
                 print(myframe.iloc[i][0])
                 mycol.insert_one(myframe.iloc[i].to_dict())
         except ValueError:
-            print("Impossible", item)
+            print("Impossible", item)                                                                         
     return list(mycol.find({}))
 
-@app.get('/getsearchedareadata')
-async def getsearchedareadata(sigudong):
+def makechartTop10():
+    constdata = getconstData()
+
+    location_gu=[]
+    location_dong=[]
+    준공예정일=[]
+    착공일=[]
+    주용도=[]
+
+    for i in constdata:
+        location_gu.append(" ".join(i["대지위치"].split(" ")[0:2]))
+        location_dong.append(i["대지위치"].split(" ")[2])
+        준공예정일.append(i["준공예정일"])
+        착공일.append(i["착공일"])
+        주용도.append(i["주용도"])
+    print("-"*50)
+    print(len(location_dong))
+    print("-"*50)
+    const=pd.DataFrame({"구":location_gu,
+                        "동":location_dong})
+
+
+    const_more = const.groupby('동').count().sort_values(by="구", ascending=True).head(20)
+    print(const_more)
+    const_more.columns = ['동이름']
+    xs=const_more.index.to_list()
+            #dy_day(데이터 프레임)의 index(날짜, 시간)를 리스트로 저장 
+    ys=const_more['동이름'].to_list()			#dy_day(테이터 프레임)의 volume 필드를 리스트로 저장
+    plt.rc('font', family='AppleGothic')
+    plt.figure(figsize=(10, 6))			#그래프 크기 지정
+    plt.xlabel('동')				#그래프 x축 이름(label) 지정
+    plt.ylabel('진행중인 공사 건수')				#그래프 y축 이름(label) 지정
+
+    bar1 = plt.bar(xs, ys, width=0.6, color='blue', alpha=0.4)
+    for i, j in enumerate(bar1) :
+        plt.text(i, j.get_height() + 0.3, ys[i], ha= 'center')
+    plt.show()
+    plt.title(f'{datetime.today().strftime("%Y년%m월%d일")}자 동별 공사건수 상위Top10(5개구)')
+    plt.savefig('chartmore.png')
+
+    const_less = const.groupby('동').count().sort_values(by="구", ascending=False).head(10)
+    print(const_less)
+
+    const_less.columns = ['동']
+    const_less.index.name = '동이름'
+    const_less.plot(kind='bar',y=['동'])
+
+    const_less.columns = ['동이름']
+    xs=const_less.index.to_list()
+            #dy_day(데이터 프레임)의 index(날짜, 시간)를 리스트로 저장 
+    ys=const_less['동이름'].to_list()			#dy_day(테이터 프레임)의 volume 필드를 리스트로 저장
+    plt.rc('font', family='AppleGothic')
+    plt.figure(figsize=(10, 6))			#그래프 크기 지정
+    plt.xlabel('동')				#그래프 x축 이름(label) 지정
+    plt.ylabel('진행중인 공사 건수')				#그래프 y축 이름(label) 지정
+
+    bar1 = plt.bar(xs, ys, width=0.6, color='blue', alpha=0.4)
+    for i, j in enumerate(bar1) :
+        plt.text(i, j.get_height() + 0.3, ys[i], ha= 'center')
+    plt.show()
+    plt.title(f'{datetime.today().strftime("%Y년%m월%d일")}자 동별 공사건수 하위Top10(5개구)')
+    plt.savefig('chartless.png')
+
+@app.get('/getSearchedAreadata')
+async def getSearchedAreadata(sigudong):
     if sigudong is None:
         return "There's no data you want. input the region."
     threegudata = await getconstData()
@@ -333,7 +471,6 @@ async def getsearchedareadata(sigudong):
     else:
         return "There's no information about the region you want"
        
-
 @app.get('/getmorethantwomonthdata')
 async def getmorethantwomonthdata(sigudong):
     if sigudong is None:
@@ -373,11 +510,11 @@ async def getmorethantwomonthdata(sigudong):
                 address.append(i['대지위치'])
         await drawMap(address,sigudong)
         gu = address[0].split(" ")[1]
-        getParkdata(gu)
         park = await getParkdata(gu)
         return gu, len(address),park
     else:
-        return "There's no information about the region you want"
+        return foli_map.save('public/result.html')
+
 
 @app.get('/admindelete')
 async def admindelete():
@@ -391,7 +528,7 @@ global url
 # foli_map = None
 async def drawMap(address, sigudong):
     info = []
-    my_gu = ['강남', '영등포', '금천']
+    my_gu = ['강남', '영등포', '금천', '관악','용산']
     my_dong = []
     for i in range(len(list(mycoll.find()))):
         for dong in mycoll.find()[i]['administrative_district']:
@@ -443,8 +580,7 @@ async def drawMap(address, sigudong):
     # foli_map.save('public/result.html')
     # print('file saved...')      
 
-# async def saveMap(sigudong):   
-    # global foli_map
+
     if sigudong is None:
         return "지역 이름을 입력하세요."
     elif sigudong[0:-1] in my_gu and sigudong[-1] == '구':
@@ -458,7 +594,7 @@ async def drawMap(address, sigudong):
             radius = data['noise']
             popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
             markercount = 0
-            center = (float(latitude), float(longitude))
+            center = (float(latitude), float(longtitude))
 
             for i in range(len(target)):
                 if haversine(center,target[i]) < radius/100:
@@ -477,6 +613,7 @@ async def drawMap(address, sigudong):
             folium.Circle([latitude, longtitude], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
             num +=1
             print('circle2')
+        await map_to_png(foli_map)
         return foli_map.save('public/result.html'),
 
     elif len(sigudong) > 2 and sigudong[-1] == '동':
@@ -505,9 +642,9 @@ async def drawMap(address, sigudong):
             markercount = 0
             center = (float(latitude), float(longitude))
             for i in range(len(target)):
-                if await round(haversine(center,target[i]),2) < radius/100:
+                if (round(haversine(center,target[i]),2)) < radius/100:
                     markercount += 1
-            await print(markercount)
+            print(markercount)
             if markercount > 9:
                 color = 'black'
             elif 9 >= markercount >= 6:
@@ -519,6 +656,7 @@ async def drawMap(address, sigudong):
             else:
                 color = 'green'
             folium.Circle([latitude, longtitude], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
+        await map_to_png(foli_map)
         return foli_map.save('public/result.html')
 
 
@@ -534,9 +672,10 @@ async def drawMap(address, sigudong):
             radius = data['noise']
             popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
             markercount = 0
-            center = (float(latitude), float(longitude))
+            center = (float(latitude), float(longtitude))
             for i in range(len(target)):
                 if haversine(center,target[i]) < radius/100:
+                    print('here')
                     print(haversine(center,target[i]))
                     markercount += 1
             
@@ -551,7 +690,7 @@ async def drawMap(address, sigudong):
             else:
                 color = 'green'
             folium.Circle([latitude, longtitude], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
-
+        await map_to_png(foli_map)
         return foli_map.save('public/result.html')
     # foli_map.save('public/result.html')
     # print('file saved...')
@@ -572,7 +711,7 @@ async def drawMap(address, sigudong):
 
             popup = folium.Popup(folium.IFrame(f'{dong_name} : {radius}'), min_width=120, max_width=120)
             markercount = 0
-            center = (float(latitude), float(longitude))
+            center = (float(latitude), float(longtitude))
             for i in range(len(target)):
                 if haversine(center,target[i]) < radius/100:
                     print(haversine(center,target[i]))
@@ -589,10 +728,11 @@ async def drawMap(address, sigudong):
             else:
                 color = 'green'
             folium.Circle([dong['lat'], dong['lng']], radius=radius * 10, color=color, fill_color=color, fill=False, popup=popup).add_to(foli_map)
+        await map_to_png(foli_map)
         return foli_map.save('public/result.html')
 
     else:
-        return "입력값을 다시 확인해주세요!" 
+        return foli_map.save('public/result.html')
 
 async def getGeocoder(url):
     print(url)
@@ -613,193 +753,89 @@ async def getGeocoder(url):
 
     return result
 
+@app.get('/get_topfive_noise')
+async def getTopFiveNoise():
+    full_data_list = list(mycoll.find())
+    gangnam_dongs = []
+    gangnam_noises = []
+
+    geumcheon_dongs = []
+    geumcheon_noises = []
+
+    yeongdeungpo_dongs = []
+    yeongdeungpo_noises = []
+
+    gwanak_dongs = []
+    gwanak_noises = []
+
+    yongsan_dongs = []
+    yongsan_noises = []
+
+    for data in full_data_list:
+        if data['autonomous_district'] == '강남구':
+            gangnam_dongs.append(data['administrative_district'])
+            gangnam_noises.append(data['noise'])
+        elif data['autonomous_district'] == '금천구':
+            geumcheon_dongs.append(data['administrative_district'])
+            geumcheon_noises.append(data['noise'])
+        elif data['autonomous_district'] == '영등포구':
+            yeongdeungpo_dongs.append(data['administrative_district'])
+            yeongdeungpo_noises.append(data['noise'])
+        elif data['autonomous_district'] == '관악구':
+            gwanak_dongs.append(data['administrative_district'])
+            gwanak_noises.append(data['noise'])
+        elif data['autonomous_district'] == '용산구':
+            yongsan_dongs.append(data['administrative_district'])
+            yongsan_noises.append(data['noise'])
+
+    gangnam_df = pd.DataFrame({'동 이름': gangnam_dongs, '소음도': gangnam_noises})
+    gangnam_df_st = gangnam_df.sort_values('소음도', ascending=False).set_index(['동 이름']).head(5)
+
+    geumcheon_df = pd.DataFrame({'동 이름': geumcheon_dongs, '소음도': geumcheon_noises})
+    geumcheon_df_st = geumcheon_df.sort_values('소음도', ascending=False).set_index(['동 이름']).head(5)
+
+    yeongdeungpo_df = pd.DataFrame({'동 이름': yeongdeungpo_dongs, '소음도': yeongdeungpo_noises})
+    yeongdeungpo_df_st = yeongdeungpo_df.sort_values('소음도', ascending=False).set_index(['동 이름']).head(5)
+
+    gwanak_df = pd.DataFrame({'동 이름': gwanak_dongs, '소음도': gwanak_noises})
+    gwanak_df_st = gwanak_df.sort_values('소음도', ascending=False).set_index(['동 이름']).head(5)
+
+    yongsan_df = pd.DataFrame({'동 이름': yongsan_dongs, '소음도': yongsan_noises})
+    yongsan_df_st = yongsan_df.sort_values('소음도', ascending=False).set_index(['동 이름']).head(5)
 
 
-client_id = "HfVmgn5t2ERUmJngZKdN"  # 개발자센터에서 발급받은 Client ID 값
-client_secret = "lBR7c4nAy7"  # 개발자센터에서 발급받은 Client Secret 값
+    gangnam_df_st.plot(kind='bar', title='강남구 소음도 TOP5', figsize=(10, 6), legend=True)
+    plt.xticks(rotation=0)
+    filename = './public/강남구.png'
+    plt.savefig(filename, dpi=400, bbox_inches='tight')
 
-def ToEn(koText):
-    encText = urllib.parse.quote(koText)
-    data = "source=ko&target=en&text=" + encText
-    url = "https://openapi.naver.com/v1/papago/n2mt"
-    request = urllib.request.Request(url)
-    request.add_header("X-Naver-Client-Id", client_id)
-    request.add_header("X-Naver-Client-Secret", client_secret)
-    response = urllib.request.urlopen(request, data=data.encode("utf-8"))
-    rescode = response.getcode()
-    if (rescode == 200):
-        response_body = response.read()
-        result = response_body.decode('utf-8')
-        d = json.loads(result)
-        # print('--- Korean to English --- ')
-        # print('번역전 : ', koText)
-        # print('번역후 : ', d['message']['result']['translatedText'])
+    geumcheon_df_st.plot(kind='bar', title='금천구 소음도 TOP5', figsize=(10, 6), legend=True)
+    plt.xticks(rotation=0)
+    filename = './public/금천구.png'
+    plt.savefig(filename, dpi=400, bbox_inches='tight')
 
-    else:
-        print("Error Code:" + rescode)
+    yeongdeungpo_df_st.plot(kind='bar', title='영등포구 소음도 TOP5', figsize=(10, 6), legend=True)
+    plt.xticks(rotation=0)
+    filename = './public/영등포구.png'
+    plt.savefig(filename, dpi=400, bbox_inches='tight')
 
-def ToKo(egText):
-    kocText = urllib.parse.quote(egText)
-    data = "source=en&target=ko&text=" + kocText
-    url = "https://openapi.naver.com/v1/papago/n2mt"
-    request = urllib.request.Request(url)
-    request.add_header("X-Naver-Client-Id", client_id)
-    request.add_header("X-Naver-Client-Secret", client_secret)
-    response = urllib.request.urlopen(request, data=data.encode("utf-8"))
-    rescode = response.getcode()
-    if (rescode == 200):
-        response_body = response.read()
-        result = response_body.decode('utf-8')
-        d = json.loads(result)
-        # print('--- English to Korean --- ')
-        # print('번역전 : ', egText)
-        # print('번역후 : ', d['message']['result']['translatedText'])
-        return d['message']['result']['translatedText']
+    gwanak_df_st.plot(kind='bar', title='관악구 소음도 TOP5', figsize=(10, 6), legend=True)
+    plt.xticks(rotation=0)
+    filename = './public/관악구.png'
+    plt.savefig(filename, dpi=400, bbox_inches='tight')
 
-    else:
-        print("Error Code:" + rescode)
+    yongsan_df_st.plot(kind='bar', title='용산구 소음도 TOP5', figsize=(10, 6), legend=True)
+    plt.xticks(rotation=0)
+    filename = './public/용산구.png'
+    plt.savefig(filename, dpi=400, bbox_inches='tight')
+
+    print(gangnam_df_st)
+    print(geumcheon_df_st)
+    print(yeongdeungpo_df_st)
+    print(gwanak_df_st)
+    print(yongsan_df_st)
+
+    return 'good'
 
 
-@app.get('/jserver_to_mongo')
-async def getjs():
-    url = 'http://192.168.1.158:5000/DATA'
-    result = json.loads(str(requests.get(url).text))
-
-    full_df = pd.DataFrame(result)
-
-    my_df = full_df[['autonomous_district', 'administrative_district', 'region', 'max_noise', 'min_noise', 'avg_noise', 'sensing_time']].replace('', 0).replace('Doksan-dong1', 'Doksan1-dong').replace('Dangsan-dong1', 'Dangsan1-dong').replace('Dangsan-dong2', 'Dangsan2-dong')
-
-    myframe = my_df.loc[(my_df.autonomous_district == 'Gangnam-gu') | (my_df.autonomous_district == 'Gwanak-gu') | (my_df.autonomous_district == 'Geumcheon-gu') | (my_df.autonomous_district == 'Yeongdeungpo-gu')]
-
-    # 강남구의 전체 동
-    gangnam_dongs = my_df.loc[(my_df.autonomous_district == 'Gangnam-gu')][['administrative_district']].drop_duplicates()
-    gangnam_dongs_list = gangnam_dongs.values
-
-    # 금천구의 전체 동
-    geumcheon_dongs = my_df.loc[(my_df.autonomous_district == 'Geumcheon-gu')][['administrative_district']].drop_duplicates()
-    geumcheon_dongs_list = geumcheon_dongs.values
-
-    # 영등포구의 전체 동
-    yeongdeungpo_dongs = my_df.loc[(my_df.autonomous_district == 'Yeongdeungpo-gu')][['administrative_district']].drop_duplicates()
-    yeongdeungpo_dongs_list = yeongdeungpo_dongs.values
-
-    # 강남구 모든 동의 최대소음
-    my_df2_gangnam = my_df.loc[(my_df.autonomous_district == 'Gangnam-gu')][['administrative_district', 'max_noise']].replace('', 0)
-
-    # 금천구 모든 동의 최대소음
-    my_df2_geumcheon = my_df.loc[(my_df.autonomous_district == 'Geumcheon-gu')][['administrative_district', 'max_noise']].replace('', 0)
-
-    # 영등포구 모든 동의 최대소음
-    my_df2_yeongdeungpo = my_df.loc[(my_df.autonomous_district == 'Yeongdeungpo-gu')][['administrative_district', 'max_noise']].replace('', 0)
-
-
-    #######################################################소음 평균 구하기 및 좌표변환#######################################################
-
-    gangnam_noise_mean = []
-    gangnam_noise_mean_real = []
-    gangnam_dong_list_real = []
-    for i in range(len(gangnam_dongs_list)):
-        result = my_df2_gangnam.groupby('administrative_district').get_group(f'{gangnam_dongs_list[i][0]}')
-        result.set_index('administrative_district', inplace=True)
-        gangnam_noise_mean.append(result.astype(float).mean().values)
-        gangnam_noise_mean_real.append(round(gangnam_noise_mean[i][0]))
-        gangnam_dong_list_real.append(ToKo(gangnam_dongs_list[i][0]))
-        # gangnam_dong_list_real.append(gangnam_dongs_list[i][0])
-
-    geumcheon_noise_mean = []
-    geumcheon_noise_mean_real = []
-    geumcheon_dong_list_real = []
-    for i in range(len(geumcheon_dongs_list)):
-        result = my_df2_geumcheon.groupby('administrative_district').get_group(f'{geumcheon_dongs_list[i][0]}')
-        result.set_index('administrative_district', inplace=True)
-        geumcheon_noise_mean.append(result.astype(float).mean().values)
-        geumcheon_noise_mean_real.append(round(geumcheon_noise_mean[i][0]))
-        geumcheon_dong_list_real.append(ToKo(geumcheon_dongs_list[i][0]))
-        # geumcheon_dong_list_real.append(geumcheon_dongs_list[i][0])
-
-    yeongdeungpo_noise_mean = []
-    yeongdeungpo_noise_mean_real = []
-    yeongdeungpo_dong_list_real = []
-    for i in range(len(yeongdeungpo_dongs_list)):
-        result = my_df2_yeongdeungpo.groupby('administrative_district').get_group(f'{yeongdeungpo_dongs_list[i][0]}')
-        result.set_index('administrative_district', inplace=True)
-        yeongdeungpo_noise_mean.append(result.astype(float).mean().values)
-        yeongdeungpo_noise_mean_real.append(round(yeongdeungpo_noise_mean[i][0]))
-        yeongdeungpo_dong_list_real.append(ToKo(yeongdeungpo_dongs_list[i][0]))
-        # yeongdeungpo_dong_list_real.append(yeongdeungpo_dongs_list[i][0])
-
-    gangnam_df = pd.DataFrame({'administrative_district': gangnam_dong_list_real, 'noise': gangnam_noise_mean_real})
-
-    geumcheon_df = pd.DataFrame({'administrative_district': geumcheon_dong_list_real, 'noise': geumcheon_noise_mean_real})
-
-    yeongdeungpo_df = pd.DataFrame({'administrative_district': yeongdeungpo_dong_list_real, 'noise': yeongdeungpo_noise_mean_real})
-
-    gangnam_gu_list = ['강남구'] * len(gangnam_df)
-    geumcheon_gu_list = ['금천구'] * len(geumcheon_df)
-    yeongdeungpo_gu_list = ['영등포구'] * len(yeongdeungpo_df)
-
-    gangnam_soum_total = gangnam_df[['noise']].sum().values
-    gangnam_avg = round(gangnam_soum_total[0] / len(gangnam_dongs))
-
-    geumcheon_soum_total = geumcheon_df[['noise']].sum().values
-    geumcheon_avg = round(geumcheon_soum_total[0] / len(geumcheon_dongs))
-
-    yeongdeungpo_soum_total = yeongdeungpo_df[['noise']].sum().values
-    yeongdeungpo_avg = round(yeongdeungpo_soum_total[0] / len(yeongdeungpo_dongs))
-
-
-    address_gangnam = gangnam_df['administrative_district']
-    address_geumcheon = geumcheon_df['administrative_district']
-    address_yeongdeungpo = yeongdeungpo_df['administrative_district']
-
-    geo_local = Nominatim(user_agent='South Korea')
-    def geocoding(address):
-        try:
-            geo = geo_local.geocode(address)
-            x_y = [geo.latitude, geo.longitude]
-            return x_y
-        except:
-            return [0,0]
-
-    latitude_gangnam = []
-    longitude_gangnam = []
-    latitude_geumcheon = []
-    longitude_geumcheon = []
-    latitude_yeongdeungpo = []
-    longitude_yeongdeungpo = []
-
-    for i in address_gangnam:
-        latitude_gangnam.append(geocoding(i)[0])
-        longitude_gangnam.append(geocoding(i)[1])
-
-    for j in address_geumcheon:
-        latitude_geumcheon.append(geocoding(j)[0])
-        longitude_geumcheon.append(geocoding(j)[1])
-
-    for k in address_yeongdeungpo:
-        latitude_yeongdeungpo.append(geocoding(k)[0])
-        longitude_yeongdeungpo.append(geocoding(k)[1])
-
-    addr_df_gangnam = pd.DataFrame({'autonomous_district': gangnam_gu_list, 'administrative_district': address_gangnam, 'noise': gangnam_noise_mean_real, 'lat': latitude_gangnam, 'lng': longitude_gangnam})
-    addr_df_gangnam.set_index(['autonomous_district', 'administrative_district'])
-    addr_df_geumcheon = pd.DataFrame({'autonomous_district': geumcheon_gu_list, 'administrative_district': address_geumcheon, 'noise': geumcheon_noise_mean_real, 'lat': latitude_geumcheon, 'lng': longitude_geumcheon})
-    addr_df_geumcheon.set_index(['autonomous_district', 'administrative_district'])
-    addr_df_yeongdeungpo = pd.DataFrame({'autonomous_district': yeongdeungpo_gu_list, 'administrative_district': address_yeongdeungpo, 'noise': yeongdeungpo_noise_mean_real, 'lat': latitude_yeongdeungpo, 'lng': longitude_yeongdeungpo})
-    addr_df_yeongdeungpo.set_index(['autonomous_district', 'administrative_district'])
-    
-    gangnam_dict = addr_df_gangnam.to_dict(orient='index')
-    geumcheon_dict = addr_df_geumcheon.to_dict(orient='index')
-    yeongdeungpo_dict = addr_df_yeongdeungpo.to_dict(orient='index')
-
-    my_dicts = [gangnam_dict, geumcheon_dict, yeongdeungpo_dict]
-    try:
-        for my_dict in my_dicts: 
-            for key_num in range(len(my_dict)):
-                if my_dict[key_num]['administrative_district'] == '도림동':
-                    my_dict[key_num]['lat'] = 37.50872
-                    my_dict[key_num]['lng'] = 126.90113
-                mycoll.insert_one(my_dict[key_num])
-    except ValueError:
-        print("just pass")
-    return list(mycoll.find({}))
 
