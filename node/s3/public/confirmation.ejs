@@ -1,0 +1,27 @@
+<h1>Success!</h1>
+
+<% if(file) { %>
+<pre><%=JSON.stringify(file, null, 2) %></pre>
+<% } %>
+
+<% if(files) { %>
+<pre><%=JSON.stringify(files, null, 2) %></pre>
+<% } %>
+
+<a href='/'>Back</a>
+
+
+## public/upload.ejs
+
+<h1><i>S3</i> File Management Console </h1>
+<hr>
+
+<h3>File Upload</h3>
+<form action="/uploadFile” enctype="multipart/form-data" method="post">
+    <input type="file" name="attachment">
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+<hr>
+
+<iframe name=targetURL class="iframe-preview center" width="100%" height="500" style="border:none;" src="list">
+</iframe>
