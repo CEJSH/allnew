@@ -7,4 +7,4 @@ ps:
 img:
 	docker images
 rmi:
-	         docker rmi $$(docker images -q)
+	docker rmi $$(docker images -q)

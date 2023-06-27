@@ -4,8 +4,8 @@ FROM ubuntu
 # Step2 : Install Program
 RUN apt -y update && apt -y install -q nginx && apt -y install vim
 
-# Step3 : File Copy
+# Step3 : File copy
 COPY index.html /var/www/html
 
-# Step4 : Start NGINX
-CMD ["nginx","-g","daemon off;"]
+# Step4: Start NGINX
+CMD ["nginx", "-g", "daemon off;"]
