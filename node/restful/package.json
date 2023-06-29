@@ -1,7 +1,8 @@
 {
-  "name": "node",
+  "name": "auth",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -9,15 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.1397.0",
-    "axios": "^1.4.0",
     "body-parser": "^1.20.2",
+    "circular-json": "^0.5.9",
     "cookie-parser": "^1.4.6",
-    "dotenv": "^16.1.4",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "fs": "^0.0.1-security",
     "morgan": "^1.10.0",
-    "path": "^0.12.7"
-  },
-  "description": ""
+    "request": "^2.88.2",
+    "sync-mysql": "^3.0.1"
+  }
 }

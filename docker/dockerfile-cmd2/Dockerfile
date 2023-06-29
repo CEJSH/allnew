@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #Base Images
 FROM ubuntu:latest
 
@@ -17,3 +18,17 @@ EXPOSE 443
 
 # server execution
 CMD ["nginx"]
+=======
+# Base Images
+FROM ubuntu:latest
+
+# nginx install
+RUN apt -y update && apt -y upgrade
+RUN apt -y intall nginx
+
+# port
+EXPOSE 80
+
+# server execution
+CMD nginx -g 'daemon off' 
+>>>>>>> abaac120221b5f8f2b2ad7aaf1801eb48c64cc68
