@@ -27,11 +27,11 @@ def signup(user_id: str = Body(...), title: str = Body(...), detail: str = Body(
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    with open("goal.html", "r") as file:
+    with open("public/index.html", "r") as file:
         content = file.read()
     return HTMLResponse(content=content)
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=3000)

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Goal Registration</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+    <form id="myForm">
+        <label for="user_id">사용자 ID:</label>
+        <input type="text" id="user_id" name="user_id" />
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" />
+        <label for="detail">Detail:</label>
+        <input type="text" id="detail" name="detail" />
+        <button type="submit">Submit</button>
+    </form>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
+    <script>
+        document.getElementById('myForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const user_id = document.getElementById('user_id').value;
+            const title = document.getElementById('title').value;
+            const detail = document.getElementById('detail').value;
+
+            const formData = {
+                user_id: user_id,
+                title: title,
+                detail: detail
+            };
+
+            try {
+                const response = await axios.post('http://localhost:3000/goalUp', formData);
+                console.log(response.data.message);
+            } catch (error) {
+                console.error('Error:', error.response.data);
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -2,39 +2,41 @@
 <html>
 
 <head>
-    <title>Goal 폼</title>  
+    <title>Goal 폼</title>
 </head>
 <style>
-
     .container {
-    width: 300px;
-    margin-left:auto;
-    margin-right:auto;
-}
+        width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     #form-container {
         width: 300px;
         padding: auto;
     }
 </style>
+
 <body>
     <div class="container">
         <div class="form-container">
-    <h1>Save your Goals!</h1>
-    <form id="goal-form">
-        <label for="user_id">사용자 ID:</label>
-        <input type="text" id="user_id" required><br>
+            <h1>Save your Goals!</h1>
+            <form id="goal-form">
+                <label for="user_id">사용자 ID:</label>
+                <input type="text" id="user_id" required><br>
 
-        <label for="title">TITLE:</label>
-        <input type="text" id="title" required><br>
+                <label for="title">TITLE:</label>
+                <input type="text" id="title" required><br>
 
-        <label for="detail">DETAIL:</label>
-        <input type="detail" id="detail" required><br>
+                <label for="detail">DETAIL:</label>
+                <input type="detail" id="detail" required><br>
 
-        <button type="submit">목표 등록!</button>
-    </form>
+                <button type="submit">목표 등록!</button>
+            </form>
 
-    <div id="result"></div></div>
-</div>
+            <div id="result"></div>
+        </div>
+    </div>
     <script>
         const form = document.getElementById('goal-form');
         const resultDiv = document.getElementById('result');
