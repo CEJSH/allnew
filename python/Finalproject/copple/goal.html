@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Goal 폼</title>
+
+</head>
+
+<body>
+    <h1>Save your Goals!</h1>
+    <form id="goal-form">
+        <label for="user_id">사용자 ID:</label>
+        <input type="text" id="user_id" required><br>
+
+        <label for="title">TITLE:</label>
+        <input type="text" id="title" required><br>
+
+        <label for="detail">DETAIL:</label>
+        <input type="detail" id="detail" required><br>
+
+        <button type="submit">목표 등록!</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById('goal-form');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const user_id = document.getElementById('user_id').value;
+            const title = document.getElementById('title').value;
+            const detail = document.getElementById('detail').value;
+
+            const formData = {
+                user_id: user_id,
+                title: title,
+                detail: detail
+            };
+
+            const response = await fetch('/goalUp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+            resultDiv.innerText = data.message;
+        });
+    </script>
+</body>
+
+</html>
