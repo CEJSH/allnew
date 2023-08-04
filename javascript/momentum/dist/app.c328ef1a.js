@@ -121,8 +121,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 var loginInput = document.querySelector("#login-form input");
 var loginButton = document.querySelector("#login-form button");
 function onLoginBtnClick() {
-  console.dir(loginInput.value);
-  console.log("clicked!!!");
+  console.log("clicked!!!", loginInput.value);
 }
 loginButton.addEventListener("click", onLoginBtnClick);
 },{}],"../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {

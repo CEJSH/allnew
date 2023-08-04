@@ -3,8 +3,7 @@ const loginButton = document.querySelector("#login-form button");
 
 
 function onLoginBtnClick (){
-    console.dir(loginInput.value)
-    console.log("clicked!!!")
+    console.log("clicked!!!", loginInput.value)
 }
 
 loginButton.addEventListener("click", onLoginBtnClick);
