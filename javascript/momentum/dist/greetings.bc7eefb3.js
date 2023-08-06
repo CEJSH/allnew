@@ -128,7 +128,7 @@ function onLoginSubmit(event) {
   loginForm.classList.add(HIDDEN_CLASSNAME);
   var username = loginInput.value;
   localStorage.setItem(USERNAME_KEY, username);
-  paintGreetings(usernmae);
+  paintGreetings(username);
 }
 function paintGreetings(username) {
   greeting.innerText = "Hello ".concat(username);
@@ -166,7 +166,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "42383" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "40659" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

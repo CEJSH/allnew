@@ -117,17 +117,33 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"js/clock.js":[function(require,module,exports) {
-var clock = document.querySelector("h2#clock");
-function getClock() {
-  var date = new Date();
-  var hours = String(date.getHours()).padStart(2, "0");
-  var minutes = String(date.getMinutes()).padStart(2, "0");
-  var seconds = String(date.getSeconds()).padStart(2, "0");
-  clock.innerText = "".concat(hours, ":").concat(minutes, ":").concat(seconds);
+})({"js/todo.js":[function(require,module,exports) {
+var toDoForm = document.getElementById("todo-form");
+var toDoInput = document.querySelector("#todo-form input");
+var toDoList = document.getElementById("todo-list");
+function deleteToDo(event) {
+  var li = event.target.parentElement;
+  li.remove();
 }
-getClock();
-setInterval(getClock, 1000);
+;
+function paintToDo(newTodo) {
+  var li = document.createElement("li");
+  var span = document.createElement("span");
+  span.innerText = newTodo;
+  var button = document.createElement("button");
+  button.innerText = "❌";
+  button.addEventListener("click", deleteToDo);
+  li.appendChild(span);
+  li.appendChild(button);
+  toDoList.appendChild(li);
+}
+function handleToDoSubmit(event) {
+  event.preventDefault();
+  var newTodo = toDoInput.value;
+  toDoInput.value = "";
+  paintToDo(newTodo);
+}
+toDoForm.addEventListener("submit", handleToDoSubmit);
 },{}],"../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -297,5 +313,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","js/clock.js"], null)
-//# sourceMappingURL=/clock.9ff9a60b.js.map
+},{}]},{},["../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","js/todo.js"], null)
+//# sourceMappingURL=/todo.52169671.js.map

@@ -117,18 +117,25 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"js/clock.js":[function(require,module,exports) {
-var clock = document.querySelector("h2#clock");
-function getClock() {
-  var date = new Date();
-  var hours = String(date.getHours()).padStart(2, "0");
-  var minutes = String(date.getMinutes()).padStart(2, "0");
-  var seconds = String(date.getSeconds()).padStart(2, "0");
-  clock.innerText = "".concat(hours, ":").concat(minutes, ":").concat(seconds);
-}
-getClock();
-setInterval(getClock, 1000);
-},{}],"../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+})({"js/img/0.jpeg":[function(require,module,exports) {
+module.exports = "/0.1019764f.jpeg";
+},{}],"js/img/1.jpeg":[function(require,module,exports) {
+module.exports = "/1.b06d95ec.jpeg";
+},{}],"js/img/2.jpeg":[function(require,module,exports) {
+module.exports = "/2.4ddee726.jpeg";
+},{}],"js/background.js":[function(require,module,exports) {
+"use strict";
+
+var _ = _interopRequireDefault(require("./img/0.jpeg"));
+var _2 = _interopRequireDefault(require("./img/1.jpeg"));
+var _3 = _interopRequireDefault(require("./img/2.jpeg"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var images = [_.default, _2.default, _3.default];
+var chosenImage = images[Math.floor(Math.random() * images.length)];
+var bgImage = document.createElement("img");
+bgImage.src = "".concat(chosenImage);
+document.body.appendChild(bgImage);
+},{"./img/0.jpeg":"js/img/0.jpeg","./img/1.jpeg":"js/img/1.jpeg","./img/2.jpeg":"js/img/2.jpeg"}],"../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -297,5 +304,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","js/clock.js"], null)
-//# sourceMappingURL=/clock.9ff9a60b.js.map
+},{}]},{},["../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","js/background.js"], null)
+//# sourceMappingURL=/background.69c54434.js.map
