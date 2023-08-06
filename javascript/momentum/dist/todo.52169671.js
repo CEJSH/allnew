@@ -121,6 +121,11 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 var toDoForm = document.getElementById("todo-form");
 var toDoInput = document.querySelector("#todo-form input");
 var toDoList = document.getElementById("todo-list");
+var TODOS_KEY = "todos";
+var toDos = [];
+function saveToDos() {
+  localStorage.setItem(TODOS_KEY, JSON.stringify(toDos));
+}
 function deleteToDo(event) {
   var li = event.target.parentElement;
   li.remove();
@@ -128,8 +133,9 @@ function deleteToDo(event) {
 ;
 function paintToDo(newTodo) {
   var li = document.createElement("li");
+  li.id = newTodo.id;
   var span = document.createElement("span");
-  span.innerText = newTodo;
+  span.innerText = newTodo.text;
   var button = document.createElement("button");
   button.innerText = "❌";
   button.addEventListener("click", deleteToDo);
@@ -141,9 +147,36 @@ function handleToDoSubmit(event) {
   event.preventDefault();
   var newTodo = toDoInput.value;
   toDoInput.value = "";
-  paintToDo(newTodo);
+  var newTodoObj = {
+    text: newTodo,
+    id: Date.now()
+  };
+  toDos.push(newTodoObj);
+  paintToDo(newTodoObj);
+  saveToDos();
 }
 toDoForm.addEventListener("submit", handleToDoSubmit);
+var savedToDos = localStorage.getItem(TODOS_KEY);
+console.log(savedToDos);
+if (savedToDos !== null) {
+  var parsedToDos = JSON.parse(savedToDos);
+  toDos = parsedToDos;
+  parsedToDos.forEach(paintToDo);
+}
+var todos = [{
+  "text": "sdsd",
+  "id": 1691330019988
+}, {
+  "text": "sdsd",
+  "id": 1691330020800
+}, {
+  "text": "sdsd",
+  "id": 1691330021361
+}];
+function sexyFilter(item) {
+  return item.id !== 1691330019988;
+}
+todos.filter(sexyFilter);
 },{}],"../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -169,7 +202,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "40659" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "34277" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
