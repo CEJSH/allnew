@@ -129,6 +129,10 @@ function saveToDos() {
 function deleteToDo(event) {
   var li = event.target.parentElement;
   li.remove();
+  toDos = toDos.filter(function (toDo) {
+    return toDo.id !== parseInt(li.id);
+  });
+  saveToDos();
 }
 ;
 function paintToDo(newTodo) {
@@ -163,20 +167,6 @@ if (savedToDos !== null) {
   toDos = parsedToDos;
   parsedToDos.forEach(paintToDo);
 }
-var todos = [{
-  "text": "sdsd",
-  "id": 1691330019988
-}, {
-  "text": "sdsd",
-  "id": 1691330020800
-}, {
-  "text": "sdsd",
-  "id": 1691330021361
-}];
-function sexyFilter(item) {
-  return item.id !== 1691330019988;
-}
-todos.filter(sexyFilter);
 },{}],"../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';

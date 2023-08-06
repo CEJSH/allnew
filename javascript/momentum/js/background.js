@@ -1,6 +1,6 @@
-import image0 from './img/0.jpeg';
-import image1 from './img/1.jpeg';
-import image2 from './img/2.jpeg';
+import image0 from '../img/0.jpeg';
+import image1 from '../img/1.jpeg';
+import image2 from '../img/2.jpeg';
 
 
 const images = [

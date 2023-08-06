@@ -117,25 +117,27 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"img/0.jpeg":[function(require,module,exports) {
-module.exports = "/0.e35ae09d.jpeg";
-},{}],"img/1.jpeg":[function(require,module,exports) {
-module.exports = "/1.9296fedd.jpeg";
-},{}],"img/2.jpeg":[function(require,module,exports) {
-module.exports = "/2.0e9b1ac8.jpeg";
-},{}],"js/background.js":[function(require,module,exports) {
-"use strict";
-
-var _ = _interopRequireDefault(require("../img/0.jpeg"));
-var _2 = _interopRequireDefault(require("../img/1.jpeg"));
-var _3 = _interopRequireDefault(require("../img/2.jpeg"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-var images = [_.default, _2.default, _3.default];
-var chosenImage = images[Math.floor(Math.random() * images.length)];
-var bgImage = document.createElement("img");
-bgImage.src = "".concat(chosenImage);
-document.body.appendChild(bgImage);
-},{"../img/0.jpeg":"img/0.jpeg","../img/1.jpeg":"img/1.jpeg","../img/2.jpeg":"img/2.jpeg"}],"../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+})({"js/weather.js":[function(require,module,exports) {
+var API_KEY = "581089d309251a63eb9487b21b930b47";
+function onGeoOk(position) {
+  var lat = position.coords.latitude;
+  var lon = position.coords.longitude;
+  console.log("You live in", lat, lon);
+  var url = "https://api.openweathermap.org/data/2.5/weather?lat=".concat(lat, "&lon=").concat(lon, "&appid=").concat(API_KEY, "&units=metric");
+  fetch(url).then(function (response) {
+    return response.json();
+  }).then(function (data) {
+    var weather = document.querySelector("#weather span:first-child");
+    var city = document.querySelector("#weather span:last-child");
+    city.innerText = data.name;
+    weather.innerText = "".concat(data.weather[0].main, " / ").concat(data.main.temp);
+  });
+}
+function onGeoError() {
+  alert("Can't find you. No weather for you.");
+}
+navigator.geolocation.getCurrentPosition(onGeoOk, onGeoError);
+},{}],"../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -304,5 +306,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","js/background.js"], null)
-//# sourceMappingURL=/background.69c54434.js.map
+},{}]},{},["../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","js/weather.js"], null)
+//# sourceMappingURL=/weather.2dcc02e5.js.map
