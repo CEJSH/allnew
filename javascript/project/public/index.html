@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input id="userId" type="text">
+    <button id="loginButton">LogIn</button>
+    <script>
+        const loginBtn = document.querySelector("#loginButton");
+        const loginInput = document.querySelector("#userId");
+        const USERNAME_KEY = "username";
+        const savedUsername = localStorage.getItem(USERNAME_KEY);
+
+        function buttonClickhandler (event) {
+            const username = loginInput.value;
+            localStorage.setItem(USERNAME_KEY, JSON.stringify(username));
+            window.location.href = "http://52.78.246.81:8000/main.html"
+
+            fetch('/server-endpoint', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data: localStorage.getItem(USERNAME_KEY) })
+            });
+        }
+
+        loginBtn.addEventListener("click",buttonClickhandler)
+    </script>    
+</body>
+</html>

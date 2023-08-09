@@ -49,3 +49,6 @@ oracle/node/package-lock.json
 
 ## html
 node_modules
+
+## javascript
+javascript/momentum/.env
