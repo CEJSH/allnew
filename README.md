@@ -1,2 +1,2 @@
 # allnew
-all new
+the remains of the days i knew nothing
